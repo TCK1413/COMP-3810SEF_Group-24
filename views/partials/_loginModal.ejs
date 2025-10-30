@@ -1,0 +1,23 @@
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loginModalLabel">Login</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> 
+      </div>
+      <div class="modal-body">
+        <form action="/auth/login" method="POST"> <div class="mb-3">
+            <label for="loginUsername" class="form-label">username</label>
+            <input type="text" class="form-control" id="loginUsername" name="username" required>
+          </div>
+          <div class="mb-3">
+            <label for="loginPassword" class="form-label">password</label>
+            <input type="password" class="form-control" id="loginPassword" name="password" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">login</button>
+        </form>
+        <hr>
+        <p class="text-center mb-0">Don't have an account yet? <a href="/auth/register">Register now</a></p> </div>
+      </div>
+  </div>
+</div>

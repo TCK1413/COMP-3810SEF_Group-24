@@ -1,0 +1,20 @@
+{
+	"name": "social_blog_platform",
+	"description": "social blog platform",
+	"version": "0.0.2",
+	"dependencies": {
+		"express": "*",
+		"ejs": "*",
+		"mongodb": "^6.7.0",
+		"mongoose": "^8.4.3",
+		"cookie-session": "*",
+		"nodemon": "*"
+	},
+	"engines": {
+		"node": ">=8.0.0",
+		"npm": ">=6.0.0"
+	},
+	"scripts": {
+		"start": "node server.js"
+	}
+}
