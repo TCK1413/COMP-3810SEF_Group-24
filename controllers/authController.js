@@ -111,8 +111,11 @@ exports.handleLogin = async (req, res) => {
   }
 };
 
-// --- Add other controller functions here later, e.g., for login, logout ---
-// exports.getLoginPage = (req, res) => { ... };
-// exports.handleLogin = async (req, res) => { ... };
-// exports.handleLogout = (req, res) => { ... };
+// === Logout Functions ===
+// Add controller function for logout
+exports.handleLogout = (req, res) => {
+  req.session = null; // 
+  res.redirect('/');
+};
+
 

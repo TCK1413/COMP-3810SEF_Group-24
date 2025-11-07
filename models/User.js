@@ -31,11 +31,7 @@ const userSchema = new Schema({
   lastName: {
     type: String,
     trim: true
-  },
-  addresses: [{ 
-    type: Schema.Types.ObjectId,
-    ref: 'Address' 
-  }]
+  }
 }, {
   
   timestamps: true

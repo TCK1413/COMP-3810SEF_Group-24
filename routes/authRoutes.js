@@ -22,7 +22,11 @@ router.get('/login', authController.getLoginPage);
 
 // POST request to /login - For handling the login form submission
 router.post('/login', authController.handleLogin);
-// router.get('/logout', authController.handleLogout);
+
+// ------------------------logout------------------------
+// Add route for handling logout
+router.get('/logout', authController.handleLogout);
+
 
 module.exports = router; // Export the router object for use in server.js
 

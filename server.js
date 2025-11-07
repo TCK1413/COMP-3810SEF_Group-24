@@ -4,9 +4,12 @@ const express = require('express');
 const mongoose = require('mongoose'); 
 const cookieSession = require('cookie-session'); 
 const path = require('path'); 
+const methodOverride = require('method-override');
 
 // Import route files
 const authRoutes = require('./routes/authRoutes'); 
+const userRoutes = require('./routes/userRoutes');
+const addressRoutes = require('./routes/addressRoutes');
 
 // ------------------------Initialize Express app and port------------------------
 const app = express(); 
@@ -34,6 +37,12 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 
+// Make session available to all views 
+app.use((req, res, next) => {
+  res.locals.session = req.session; 
+  next();
+});
+
 // Static Files
 app.use(express.static('public')); 
 
@@ -41,9 +50,18 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.json()); 
 
+// Method Override Middleware
+app.use(methodOverride('_method'));
+
 // ------------------------Define Routes------------------------
 // Authentication Routes 
 app.use('/auth', authRoutes);
+
+// User Routes
+app.use('/user', userRoutes);
+
+// Address Routes
+app.use('/user/addresses', addressRoutes);
 
 // Index/Home Route
 app.get('/', (req, res) => { 

@@ -3,11 +3,13 @@
 	"description": "social blog platform",
 	"version": "0.0.2",
 	"dependencies": {
-		"express": "*",
+		"cookie-session": "*",
+		"country-list": "^2.4.1",
 		"ejs": "*",
+		"express": "*",
+		"method-override": "^3.0.0",
 		"mongodb": "^6.7.0",
 		"mongoose": "^8.4.3",
-		"cookie-session": "*",
 		"nodemon": "*"
 	},
 	"engines": {

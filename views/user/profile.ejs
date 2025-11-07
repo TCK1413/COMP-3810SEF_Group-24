@@ -1,0 +1,50 @@
+<%- include('../partials/_top') %>
+
+<main class="container my-4">
+  <h2 class="mb-3">User Center</h2>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+
+  <section class="mb-4">
+    <h5>Account Info</h5>
+    <ul class="list-group">
+      <li class="list-group-item">Username: <strong><%= user.username %></strong></li>
+      <li class="list-group-item">Email: <%= user.email %></li>
+      <li class="list-group-item">Name: <%= (user.firstName || '') + ' ' + (user.lastName || '') %></li>
+      <li class="list-group-item">
+        <a class="btn btn-sm btn-outline-primary" href="/user/addresses">Manage Addresses</a>
+        <a class="btn btn-sm btn-outline-danger" href="/auth/logout">Log out</a>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h5>Update Profile</h5>
+    <form method="POST" action="/user/profile" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Email</label>
+        <input name="email" type="email" class="form-control" value="<%= user.email %>" required>
+      </div>
+   
+       <div class="col-md-6">
+        <label class="form-label">Username (read-only)</label>
+        <input type="text" class="form-control" value="<%= user.username %>" disabled>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">First Name</label>
+        <input name="firstName" type="text" class="form-control" value="<%= user.firstName || '' %>">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Last Name</label>
+        <input name="lastName" type="text" class="form-control" value="<%= user.lastName || '' %>">
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </section>
+</main>
+
+<%- include('../partials/_bottom') %>

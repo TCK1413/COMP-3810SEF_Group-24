@@ -1,0 +1,55 @@
+<%- include('../partials/_top') %>
+
+<main class="container my-4">
+  <h2 class="mb-3"><%= mode === 'create' ? 'Add Address' : 'Edit Address' %></h2>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+
+  <form method="POST" action="<%= mode === 'create' ? '/user/addresses' : ('/user/addresses/' + address._id + '?_method=PUT') %>" class="row g-3">
+    <div class="col-md-8">
+      <label class="form-label">Street Address</label>
+      <input name="street" class="form-control" required value="<%= address.street || '' %>">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">City</label>
+      <input name="city" class="form-control" required value="<%= address.city || '' %>">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Postal Code</label>
+      <input name="postalCode" class="form-control" required value="<%= address.postalCode || '' %>">
+    </div>
+    
+    <div class="col-md-4">
+      <label class="form-label">Country</label>
+      <select name="country" class="form-select" required>
+        <option value="">Please select a country...</option>
+        <% if (typeof countries !== 'undefined') { %>
+          <% countries.forEach(countryName => { %>
+            <option 
+              value="<%= countryName %>" 
+              <%= (typeof address !== 'undefined' && address.country === countryName) ? 'selected' : '' %>
+            >
+              <%= countryName %>
+            </option>
+          <% }) %>
+        <% } %>
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Phone (optional)</label>
+      <input name="phone" class="form-control" value="<%= address.phone || '' %>">
+    </div>
+    <div class="col-12 form-check mt-2">
+      <input class="form-check-input" type="checkbox" id="isDefault" name="isDefault" <%= address.isDefault ? 'checked' : '' %>>
+      <label class="form-check-label" for="isDefault">Set as default address</label>
+    </div>
+    <div class="col-12">
+      <button class="btn btn-primary"><%= mode === 'create' ? 'Create' : 'Save' %></button>
+      <a class="btn btn-secondary" href="/user/addresses">Back to List</a>
+    </div>
+  </form>
+</main>
+
+<%- include('../partials/_bottom') %>
