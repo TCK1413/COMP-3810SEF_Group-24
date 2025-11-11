@@ -4,6 +4,32 @@ const Order = require('../models/Order');
 const User = require('../models/User'); // 用於獲取登入用戶的 Email
 const Address = require('../models/Address'); // 用於獲取登入用戶的地址
 const emailService = require('../services/emailService'); // 引入郵件服務
+const Product = require('../models/Product');
+const { getNames, getCode } = require('country-list');
+
+
+/* ---------- 庫存扣減：逐項原子扣減，防止負庫存 ---------- */
+async function adjustStockForItems(items) {
+  if (!Array.isArray(items) || items.length === 0) return { ok: true, failed: [] };
+
+  const failed = [];
+  for (const it of items) {
+    const productId = it.productId || it._id;
+    const qty = Number(it.quantity || 0);
+    if (!productId || !qty) continue;
+
+    // 只有當現有庫存 >= 購買數量時才扣減；$inc 原子操作避免併發問題
+    const res = await Product.updateOne(
+      { _id: productId, stock: { $gte: qty } },
+      { $inc: { stock: -qty } }
+    );
+
+    if (!res || res.modifiedCount !== 1) {
+      failed.push({ productId, qty });
+    }
+  }
+  return { ok: failed.length === 0, failed };
+}
 
 // 1. 顯示結帳頁面 (GET /checkout)
 exports.getCheckoutPage = async (req, res) => {
@@ -27,15 +53,19 @@ exports.getCheckoutPage = async (req, res) => {
     } catch (err) {
       console.error(err);
       // 即使出錯也繼續，讓他們手動輸入
+      
     }
   }
+  
+  const countries = getNames();	
 
-  res.render('checkout', {
+  res.render('checkout/index', {
     title: 'Checkout',
     cart: res.locals.cart,
     totalPrice: res.locals.initialTotalPrice,
     userEmail: userEmail, // 可能是 null（遊客）或用戶 Email
-    userAddresses: userAddresses // 可能是 []（遊客）或地址列表
+    userAddresses: userAddresses, // 可能是 []（遊客）或地址列表
+    countries: countries
   });
 };
 
@@ -123,8 +153,8 @@ exports.createCheckoutSession = async (req, res) => {
       line_items: line_items,
       customer_email: emailToUse,
       // 成功和取消的 URL
-      success_url: `http://localhost:${port}/checkout/success?stripe_session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://localhost:${port}/checkout/cancel`,
+      success_url: `http://localhost:8099/checkout/success?stripe_session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `http://localhost:8099/checkout/cancel`,
     });
 
     // 3. 重定向到 Stripe 的付款頁面
@@ -152,29 +182,39 @@ exports.getSuccessPage = async (req, res, next) => {
     const existingOrder = await Order.findOne({ stripeSessionId: stripeSessionId });
     if (existingOrder) {
       // 已經處理過了，直接顯示成功頁面，但不再發送郵件或清空購物車
-      return res.render('checkout-success', { title: 'Order Confirmed' });
+      return res.render('checkout/success', { title: 'Order Confirmed' });
     }
 
     // --- 關鍵邏輯：這是第一次處理這個成功的訂單 ---
 
-    // 1. 創建一個新訂單並儲存到我們的數據庫
+    // 1) 創建一個新訂單並儲存到我們的數據庫
     const newOrder = new Order({
       ...pendingOrder,
       stripeSessionId: stripeSessionId // 儲存 Stripe ID
     });
     await newOrder.save();
+
+    const stockResult = await adjustStockForItems(pendingOrder.items);
+    if (!stockResult.ok) {
+      // 庫存不足或更新失敗的項目集合（課程作業：記錄警告即可；生產可做補償/人工介入）
+      console.warn('Stock deduction failed for items:', stockResult.failed);
+    }
     
-    // 2. 清空購物車
+    // 3) 清空購物車
     req.session.cart = null; // 清空 cookie/session 中的購物車
 
-    // 3. (可選) 清除臨時訂單數據
+    // 4) (可選) 清除臨時訂單數據
     req.session.pendingOrderData = null;
 
-    // 4. 發送訂單確認郵件
-    await emailService.sendOrderConfirmation(newOrder);
+    // 5) 發送訂單確認郵件
+    try {
+      await emailService.sendOrderConfirmation(newOrder);
+    } catch (mailErr) {
+      console.warn('Send order confirmation mail failed:', mailErr?.message || mailErr);
+    }
 
-    // 5. 顯示成功頁面
-    res.render('checkout-success', { title: 'Order Confirmed' });
+    // 6) 顯示成功頁面
+    res.render('checkout/success', { title: 'Order Confirmed' });
 
   } catch (err) {
     next(err);
@@ -185,5 +225,6 @@ exports.getSuccessPage = async (req, res, next) => {
 exports.getCancelPage = (req, res) => {
   // (可選) 清除臨時訂單數據
   req.session.pendingOrderData = null;
-  res.render('checkout-cancel', { title: 'Payment Canceled' });
+  res.render('checkout/cancel', { title: 'Payment Canceled' });
 };
+

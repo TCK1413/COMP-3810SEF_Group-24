@@ -1,0 +1,101 @@
+<%- include('../../partials/_top', { title: typeof title !== 'undefined' ? title : 'Order Detail' }) %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Order #<%= order._id %></h1>
+    <a href="/user/orders" class="btn btn-sm btn-outline-secondary">Back to Orders</a>
+  </div>
+
+  <div class="row g-4">
+    <!-- 左侧：订单基本信息（不再展示 Stripe Session 给顾客） -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Order Summary</h5>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-1">
+              <span class="text-muted">Placed at:</span>
+              <strong><%= (helpers && helpers.formatDate) ? helpers.formatDate(order.createdAt) : order.createdAt %></strong>
+            </li>
+            <% if (order.customerEmail) { %>
+            <li class="mb-1">
+              <span class="text-muted">Email:</span>
+              <strong><%= order.customerEmail %></strong>
+            </li>
+            <% } %>
+          </ul>
+        </div>
+      </div>
+
+      <% if (order.shippingAddress) { %>
+      <div class="card shadow-sm mt-3">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Shipping Address</h5>
+          <address class="mb-0">
+            <div><%= order.shippingAddress.street %></div>
+            <div><%= order.shippingAddress.city %>, <%= order.shippingAddress.postalCode %></div>
+            <div><%= order.shippingAddress.country %></div>
+            <% if (order.shippingAddress.phone) { %>
+              <div>Phone: <%= order.shippingAddress.phone %></div>
+            <% } %>
+          </address>
+        </div>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- 右侧：商品清单（加图片） -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Items</h5>
+
+          <% if (!items || items.length === 0) { %>
+            <div class="text-muted">No items found in this order.</div>
+          <% } else { %>
+            <ul class="list-group list-group-flush">
+              <% items.forEach(function(it){ 
+                   const img = it.imageUrl || (it.images && it.images[0]) || it.image || '/images/placeholder.png';
+                   const name = it.name || ('Product ' + (it.productId || ''));
+                   const price = (typeof it.price === 'number') ? Number(it.price) : null;
+                   const qty = (typeof it.quantity === 'number') ? Number(it.quantity) : 0;
+              %>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-start">
+                    <img src="<%= img %>" alt="" class="rounded border me-3"
+                         style="width:48px;height:48px;object-fit:cover;">
+                    <div>
+                      <div class="fw-semibold"><%= name %></div>
+                      <div class="text-muted small">
+                        Qty: <%= qty %>
+                        <% if (price !== null) { %>
+                          • $<%= price.toFixed(2) %> each
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+
+                  <% if (price !== null) { %>
+                    <div class="fw-semibold">$<%= (price * qty).toFixed(2) %></div>
+                  <% } %>
+                </li>
+              <% }) %>
+            </ul>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div class="text-muted">Total</div>
+              <div class="fs-5 fw-semibold">$<%= Number(totalAmount || 0).toFixed(2) %></div>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="/products" class="btn btn-primary">Continue Shopping</a>
+  </div>
+</div>
+
+<%- include('../../partials/_bottom') %>
+

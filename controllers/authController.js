@@ -6,12 +6,12 @@ const User = require('../models/User');
 // === Registration Functions ===
 // Display the registration page
 exports.getRegisterPage = (req, res) => {
-  res.render('register', { error: null });
+  res.render('auth/register', { error: null });
 };
 
 // Display the register-success page
 exports.getRegisterSuccessPage = (req, res) => {
-  res.render('register-success');
+  res.render('auth/register-success');
 };
 
 // Handle registration form submission
@@ -22,7 +22,7 @@ exports.handleRegistration = async (req, res) => {
   // Check if passwords match
   if (password !== confirmPassword) {
     // Re-render the registration page with an error message
-    return res.render('register', { error: 'Passwords do not match!' });
+    return res.render('auth/register', { error: 'Passwords do not match!' });
   }
 
   // Check if username or email already exists in the database
@@ -30,7 +30,7 @@ exports.handleRegistration = async (req, res) => {
     const existingUser = await User.findOne({ $or: [{ username: username }, { email: email }] });
     if (existingUser) {
       // If user found, render registration page with error
-      return res.render('register', { error: 'Username or email already exists!' });
+      return res.render('auth/register', { error: 'Username or email already exists!' });
     }
 
     // Create a new user instance
@@ -58,18 +58,18 @@ exports.handleRegistration = async (req, res) => {
         let errorMessages = Object.values(err.errors).map(el => el.message);
         // Join messages or take the first one
         let displayError = errorMessages.join(' ');
-        return res.render('register', { error: displayError });
+        return res.render('auth/register', { error: displayError });
     }
 
     // Generic error message for other failures
-    res.render('register', { error: 'Registration failed. Please try again.' });
+    res.render('auth/register', { error: 'Registration failed. Please try again.' });
   }
 };
 
 // === Login Functions ===
 // Function: Display the login page
 exports.getLoginPage = (req, res) => {
-  res.render('login', { error: null }); // Pass null error initially
+  res.render('auth/login', { error: null }); // Pass null error initially
 };
 
 // Function: Handle login form submission
@@ -84,7 +84,7 @@ exports.handleLogin = async (req, res) => {
     // Check if user exists
     if (!user) {
       // User not found
-      return res.render('login', { error: 'Invalid username or password.' });
+      return res.render('auth/login', { error: 'Invalid username or password.' });
     }
 
     const isMatch = (password === user.password);
@@ -92,7 +92,7 @@ exports.handleLogin = async (req, res) => {
     // Check if password matches
     if (!isMatch) {
       // Password does not match
-      return res.render('login', { error: 'Invalid username or password.' });
+      return res.render('auth/login', { error: 'Invalid username or password.' });
     }
 
     // Login successful: Create a session
@@ -107,7 +107,7 @@ exports.handleLogin = async (req, res) => {
   } catch (err) {
     // Handle any server errors
     console.error("Login error:", err);
-    res.render('login', { error: 'Login failed. Please try again.' });
+    res.render('auth/login', { error: 'Login failed. Please try again.' });
   }
 };
 

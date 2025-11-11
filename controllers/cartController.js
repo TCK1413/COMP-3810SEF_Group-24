@@ -7,7 +7,7 @@ exports.getCartPage = (req, res) => {
   // The 'cart' variable (which is req.session.cart)
   // is already loaded by the middleware in server.js
   // and passed to *all* templates as 'cart' and 'initialTotalPrice'.
-  res.render('cart', {
+  res.render('cart/index', {
     title: 'Your Shopping Cart'
   });
 };

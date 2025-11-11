@@ -4,7 +4,7 @@ const Product = require('../models/Product');
 exports.getProductsPage = async (req, res) => {
   try {
     const products = await Product.find().limit(10);
-    res.render('products', { 
+    res.render('products/index', { 
       title: 'Products', 
       products
     });
@@ -21,7 +21,7 @@ exports.getProductDetailPage = async (req, res) => {
     if (!product) {
       return res.status(404).render('error', { message: 'Product not found' });
     }
-    res.render('product-detail', { 
+    res.render('products/detail', { 
       title: product.name, 
       product
     });
