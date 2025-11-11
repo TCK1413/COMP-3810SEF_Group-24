@@ -1,4 +1,4 @@
-<%- include('partials/_top') %>
+<%- include('../partials/_top') %>
 
 <head>
     <title><%= title %></title>
@@ -91,18 +91,29 @@
               </div>
               <div class="col-md-4">
                 <label for="postalCode" class="form-label">Postal Code</label>
-                <input type="text" class="form-control" id="postalCode" name="postalCode" required>
+                <input type="text" class="form-control" id="postalCode" name="postalCode" required inputmode="numeric" pattern="[0-9]+" title="  Enter numbers only">
               </div>
               <div class="col-md-4">
-                <label for="country" class="form-label">Country</label>
-                <select class="form-select" id="country" name="country" required>
-                  <option value="">Select...</option>
-                  <input type="text" class="form-control" id="country" name="country" required>
-                </select>
-              </div>
+	  	<label for="country" class="form-label">Country</label>
+	  	<select name="country" id="country" class="form-select" required>
+	    	<option value="">Please select a country...</option>
+	    	<% if (typeof countries !== 'undefined' && countries && countries.length) { %>
+	      	<% countries.forEach(function(countryName){ %>
+			<option 
+		  	value="<%= countryName %>"
+		  	<%= (typeof address !== 'undefined' && address && address.country === countryName) 
+		        	|| (typeof formData !== 'undefined' && formData.country === countryName) 
+		        	? 'selected' : '' %>>
+		  	<%= countryName %>
+			</option>
+	      	<% }) %>
+	    	<% } %>
+	  	</select>
+	  </div>
+
               <div class="col-md-6">
                 <label for="phone" class="form-label">Phone <span class="text-body-secondary">(Optional)</span></label>
-                <input type="tel" class="form-control" id="phone" name="phone">
+                <input type="tel" class="form-control" id="phone" name="phone" inputmode="numeric" pattern="[0-9]+" title="  Enter numbers only">
               </div>
             </div>
           </div>
@@ -147,5 +158,34 @@
   }
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('form');
+  const postalInput = document.getElementById('postalCode');
+  const phoneInput = document.getElementById('phone');
 
-<%- include('partials/_bottom') %>
+  form.addEventListener('submit', function(e) {
+    const postal = postalInput.value.trim();
+    const phone = phoneInput.value.trim();
+
+    // 只要包含非数字就报错
+    const nonDigit = /\D/;
+
+    if (postal && nonDigit.test(postal)) {
+      e.preventDefault();
+      alert('Postal Code must contain numbers only.');
+      postalInput.focus();
+      return false;
+    }
+
+    if (phone && nonDigit.test(phone)) {
+      e.preventDefault();
+      alert('Phone must contain numbers only.');
+      phoneInput.focus();
+      return false;
+    }
+  });
+});
+</script>
+
+<%- include('../partials/_bottom') %>

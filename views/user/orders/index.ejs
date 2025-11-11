@@ -1,0 +1,58 @@
+<%- include('../../partials/_top', { title: typeof title !== 'undefined' ? title : 'My Orders' }) %>
+
+<div class="container py-4">
+  <h1 class="h3 mb-4">My Orders</h1>
+
+  <% if (!orders || orders.length === 0) { %>
+    <div class="alert alert-info">
+      You have no orders yet. <a href="/products" class="alert-link">Start shopping</a>.
+    </div>
+  <% } else { %>
+    <div class="list-group">
+      <% orders.forEach(function(order) { 
+           const maxThumbs = 8;
+           const allItems = Array.isArray(order.items) ? order.items : [];
+           const thumbs = allItems.slice(0, maxThumbs);
+           const extra = allItems.length - thumbs.length;
+      %>
+        <a class="list-group-item list-group-item-action" href="/user/orders/<%= order._id %>">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="me-3 flex-grow-1">
+              <div class="fw-semibold">Order #<%= order._id %></div>
+              <div class="text-muted small mb-1">
+                Placed at: <%= (helpers && helpers.formatDate) ? helpers.formatDate(order.createdAt) : order.createdAt %>
+                <% if (order.customerEmail) { %> • Email: <%= order.customerEmail %> <% } %>
+              </div>
+
+              <!-- thumbs strip -->
+              <div class="d-flex flex-wrap gap-2 mt-1">
+                <% thumbs.forEach(function(it){ 
+                     const img = it.imageUrl || (it.images && it.images[0]) || it.image || '/images/placeholder.png';
+                %>
+                  <img src="<%= img %>" alt="" class="rounded border"
+                       style="width:32px;height:32px;object-fit:cover;">
+                <% }) %>
+                <% if (extra > 0) { %>
+                  <span class="badge text-bg-secondary align-self-center">+<%= extra %></span>
+                <% } %>
+              </div>
+
+              <!-- total price -->
+              <div class="mt-2 fw-semibold">
+                Total: 
+                <span class="text-primary">$<%= Number(order.totalPrice || 0).toFixed(2) %></span>
+              </div>
+            </div>
+
+            <div class="text-end align-self-center">
+              <span class="ms-2 badge text-bg-light">Details ›</span>
+            </div>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../../partials/_bottom') %>
+

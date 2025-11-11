@@ -1,168 +1,30 @@
-<!doctype html>
-<html lang="en" data-bs-theme="auto">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="" />
-    <meta
-      name="author"
-      content="Mark Otto, Jacob Thornton, and Bootstrap contributors"
-    />
-    <meta name="generator" content="Astro v5.13.2" />
-    <title>My Shopping Platform</title>
-    <link
-      rel="canonical"
-      href="https://getbootstrap.com/docs/5.3/examples/product/"
-    />
+/* ===== 导航相关（新增/调整） ===== */
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+/* 桌面端：悬停显示购物车预览下拉 */
+@media (min-width: 768px) {
+  .dropdown:hover .dropdown-menu {
+    display: block;
+    margin-top: 0;
+  }
+}
 
-    <meta name="theme-color" content="#712cf9" />
+/* 让内嵌 SVG 图标颜色跟随文字（在深色背景下为白色） */
+.navbar .bi { fill: currentColor; }
 
-    <link rel="stylesheet" href="/css/top.css"> <link rel="stylesheet" href="/css/product.css"> </head>
-  <body>
-    <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
-       <symbol id="check2" viewBox="0 0 16 16">
-        <path
-          d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"
-        ></path>
-      </symbol>
-      <symbol
-        id="aperture"
-        fill="none"
-        stroke="currentColor"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        viewBox="0 0 24 24"
-      >
-        <circle cx="12" cy="12" r="10"></circle>
-        <path
-          d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"
-        ></path>
-      </symbol>
-      <symbol id="cart" viewBox="0 0 16 16">
-        <path
-          d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l.84 4.479 9.144-.459L13.89 4H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"
-        ></path>
-      </symbol>
-      <symbol id="chevron-right" viewBox="0 0 16 16">
-        <path
-          fill-rule="evenodd"
-          d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"
-        ></path>
-      </symbol>
-      <symbol id="person-fill" viewBox="0 0 16 16">
-         <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
-      </symbol>
-    </svg>
+/* 右侧各组之间的竖线分隔 */
+.nav-divider {
+  width: 1px;
+  height: 24px;
+  background-color: rgba(255, 255, 255, .35);
+}
 
-    <nav
-      class="navbar navbar-expand-md bg-dark sticky-top border-bottom"
-      data-bs-theme="dark"
-    >
-      <div class="container">
-        <a class="navbar-brand d-md-none" href="/">
-          <svg class="bi" width="24" height="24" aria-hidden="true">
-            <use xlink:href="#aperture"></use>
-          </svg>
-          MyStore
-        </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="offcanvas"
-          data-bs-target="#offcanvas"
-          aria-controls="offcanvas"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div
-          class="offcanvas offcanvas-end"
-          tabindex="-1"
-          id="offcanvas"
-          aria-labelledby="offcanvasLabel"
-        >
-          <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasLabel">MyStore</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="offcanvas"
-              aria-label="Close"
-            ></button>
-          </div>
-          
-          <div class="offcanvas-body">
-            
-            <ul class="navbar-nav me-auto mb-2 mb-md-0">
-              <li class="nav-item">
-                <a class="nav-link" href="/" aria-label="MyStore Home">
-                  <svg class="bi" width="24" height="24" aria-hidden="true">
-                    <use xlink:href="#aperture"></use>
-                  </svg>
-                </a>
-              </li>
-              <li class="nav-item mx-md-3"> <a class="nav-link" href="/">Home</a>
-              </li>
-              <li class="nav-item mx-md-3"> <a class="nav-link" href="/products">Product</a>
-              </li>
-            </ul>
+/* 左侧 Home / Product 占左半并均匀分布 */
+@media (min-width: 768px) {
+  .left-nav { width: 50%; }
+}
 
-            <ul class="navbar-nav mb-2 mb-md-0"> 
-              
-              <% 
-                let initialCartCount = 0;
-                if (typeof session !== 'undefined' && session.cart && Array.isArray(session.cart)) {
-                  initialCartCount = session.cart.reduce((total, item) => total + (item.quantity || 0), 0);
-                }
-              %>
+/* 购物车角标（保持你原先的视觉位置） */
+.top-25 { top: 25% !important; }
 
-              <% if (typeof session !== 'undefined' && session.authenticated) { %>
-                <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <svg class="bi me-2" width="16" height="16" aria-hidden="true">
-                      <use xlink:href="#person-fill"></use>
-                    </svg>
-                    Welcome, <%= session.username %>
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarUserDropdown">
-                    <li><a class="dropdown-item" href="/user/profile">User Profile</a></li>
-                    <li><a class="dropdown-item" href="/user/orders">My Orders</a></li> 
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="/auth/logout">Logout</a></li>
-                  </ul>
-                </li>
-              <% } else { %>
-                <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center" href="/auth/login">
-                    <svg class="bi me-2" width="16" height="16" aria-hidden="true">
-                      <use xlink:href="#person-fill"></use>
-                    </svg>
-                    Login / Sign Up
-                  </a>
-                </li>
-              <% } %>
+/* ===== 你原有的样式若有其它内容，请保留在本文件中（下方/上方均可） ===== */
 
-              <li class="nav-item">
-                <a class="nav-link d-flex align-items-center position-relative" href="/cart" aria-label="Cart">
-                  <svg class="bi" width="24" height="24" aria-hidden="true">
-                    <use xlink:href="#cart"></use>
-                  </svg>
-                  
-                  <span 
-                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
-                    id="cart-badge"
-                    style="<%= initialCartCount > 0 ? '' : 'display: none;' %>"
-                  >
-                    <%= initialCartCount %>
-                  </span>
-                </a>
-              </li>
-            </ul>
-
-          </div>
-        </div>
-      </div>
-    </nav>

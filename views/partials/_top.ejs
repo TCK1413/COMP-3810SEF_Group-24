@@ -19,15 +19,8 @@
 
     <meta name="theme-color" content="#712cf9" />
 
-    <link rel="stylesheet" href="/css/top.css"> <link rel="stylesheet" href="/css/product.css"> <style>
-      /* Make the dropdown menu appear on hover for desktop */
-      @media (min-width: 768px) { 
-        .dropdown:hover .dropdown-menu {
-          display: block;
-          margin-top: 0; 
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="/css/top.css">
+    <link rel="stylesheet" href="/css/product.css">
   </head>
   <body>
     <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
@@ -103,7 +96,7 @@
             ></button>
           </div>
           
-          <div class="offcanvas-body">
+          <div class="offcanvas-body d-flex align-items-center">
             
             <% 
               let initialCartCount = 0;
@@ -114,22 +107,27 @@
               }
             %>
             
-            <ul class="navbar-nav me-auto mb-2 mb-md-0">
+            <!-- 左侧：Home / Product 占左半，并居中均分 -->
+            <ul class="navbar-nav mx-auto left-nav justify-content-around mb-2 mb-md-0">
               <li class="nav-item">
-                <a class="nav-link" href="/" aria-label="MyStore Home">
+                <a class="nav-link link-light" href="/" aria-label="MyStore Home">
                   <svg class="bi" width="24" height="24" aria-hidden="true">
                     <use xlink:href="#aperture"></use>
                   </svg>
                 </a>
               </li>
-              <li class="nav-item mx-md-3"> <a class="nav-link" href="/">Home</a>
+              <li class="nav-item mx-md-3">
+                <a class="nav-link link-light" href="/">Home</a>
               </li>
-              <li class="nav-item mx-md-3"> <a class="nav-link" href="/products">Product</a>
+              <li class="nav-item mx-md-3">
+                <a class="nav-link link-light" href="/products">Product</a>
               </li>
             </ul>
 
-            <ul class="navbar-nav mb-2 mb-md-0"> 
-              
+            <!-- 右侧：用户/登录 ｜ 购物车 ｜ 订单查询 -->
+            <ul class="navbar-nav mb-2 mb-md-0 align-items-center">
+
+              <!-- 用户 / 登录 -->
               <% if (typeof session !== 'undefined' && session.authenticated) { %>
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle d-flex align-items-center link-light" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -156,13 +154,16 @@
                 </li>
               <% } %>
 
+              <!-- 竖线分隔 -->
+              <li class="d-none d-md-flex align-items-center mx-2"><div class="nav-divider"></div></li>
+
+              <!-- 购物车 + 预览 -->
               <li class="nav-item dropdown">
-                <a class="nav-link d-flex align-items-center position-relative link-light" href="/cart" aria-label="Cart" 
-                   id="cart-dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <a class="nav-link d-flex align-items-center position-relative link-light" href="/cart" 
+                   id="cart-dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Cart">
                   <svg class="bi" width="24" height="24" aria-hidden="true">
                     <use xlink:href="#cart"></use>
                   </svg>
-                  
                   <span 
                     class="position-absolute top-25 start-75 translate-middle badge rounded-pill bg-danger" 
                     id="cart-badge"
@@ -198,7 +199,15 @@
                       <a href="/cart" class="btn btn-light btn-sm">Go to Cart</a>
                     </div>
                   </div>
-                  </div>
+                </div>
+              </li>
+
+              <!-- 竖线分隔 -->
+              <li class="d-none d-md-flex align-items-center mx-2"><div class="nav-divider"></div></li>
+
+              <!-- 订单查询按钮（在购物车右侧） -->
+              <li class="nav-item">
+                <a class="btn btn-outline-light btn-sm" href="/orders/lookup">Order Lookup</a>
               </li>
             </ul>
 
@@ -206,3 +215,4 @@
         </div>
       </div>
     </nav>
+

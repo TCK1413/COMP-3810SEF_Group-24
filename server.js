@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const cookieSession = require('cookie-session'); 
 const path = require('path'); 
 const methodOverride = require('method-override');
+require('dotenv').config();
 
 // Import route files
 const authRoutes = require('./routes/authRoutes'); 
@@ -12,6 +13,8 @@ const userRoutes = require('./routes/userRoutes');
 const addressRoutes = require('./routes/addressRoutes');
 const productRoutes = require('./routes/productRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const checkoutRoutes = require('./routes/checkoutRoutes');
+const ordersRoutes = require('./routes/ordersRoutes');
 
 // ------------------------Initialize Express app and port------------------------
 const app = express(); 
@@ -87,6 +90,12 @@ app.use('/products', productRoutes);
 
 // Cart Routes
 app.use('/cart', cartRoutes);
+
+// Checkout Routes
+app.use('/checkout', checkoutRoutes);
+
+// Order Routes
+app.use('/user/orders', ordersRoutes);
 
 // Index/Home Route
 app.get('/', (req, res) => { 
