@@ -19,16 +19,7 @@
 
     <meta name="theme-color" content="#712cf9" />
 
-    <link rel="stylesheet" href="/css/top.css"> <link rel="stylesheet" href="/css/product.css"> <style>
-      /* Make the dropdown menu appear on hover for desktop */
-      @media (min-width: 768px) { 
-        .dropdown:hover .dropdown-menu {
-          display: block;
-          margin-top: 0; 
-        }
-      }
-    </style>
-  </head>
+    <link rel="stylesheet" href="/css/top.css"> <link rel="stylesheet" href="/css/product.css"> </head>
   <body>
     <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
        <symbol id="check2" viewBox="0 0 16 16">
@@ -105,15 +96,6 @@
           
           <div class="offcanvas-body">
             
-            <% 
-              let initialCartCount = 0;
-              let initialTotalPrice = 0;
-              if (typeof session !== 'undefined' && session.cart && Array.isArray(session.cart)) {
-                initialCartCount = session.cart.reduce((total, item) => total + (item.quantity || 0), 0);
-                initialTotalPrice = session.cart.reduce((total, item) => total + ((item.quantity || 0) * (item.price || 0)), 0);
-              }
-            %>
-            
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
               <li class="nav-item">
                 <a class="nav-link" href="/" aria-label="MyStore Home">
@@ -130,9 +112,16 @@
 
             <ul class="navbar-nav mb-2 mb-md-0"> 
               
+              <% 
+                let initialCartCount = 0;
+                if (typeof session !== 'undefined' && session.cart && Array.isArray(session.cart)) {
+                  initialCartCount = session.cart.reduce((total, item) => total + (item.quantity || 0), 0);
+                }
+              %>
+
               <% if (typeof session !== 'undefined' && session.authenticated) { %>
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle d-flex align-items-center link-light" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <svg class="bi me-2" width="16" height="16" aria-hidden="true">
                       <use xlink:href="#person-fill"></use>
                     </svg>
@@ -147,7 +136,7 @@
                 </li>
               <% } else { %>
                 <li class="nav-item">
-                  <a class="nav-link d-flex align-items-center link-light" href="/auth/login">
+                  <a class="nav-link d-flex align-items-center" href="/auth/login">
                     <svg class="bi me-2" width="16" height="16" aria-hidden="true">
                       <use xlink:href="#person-fill"></use>
                     </svg>
@@ -156,49 +145,20 @@
                 </li>
               <% } %>
 
-              <li class="nav-item dropdown">
-                <a class="nav-link d-flex align-items-center position-relative link-light" href="/cart" aria-label="Cart" 
-                   id="cart-dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center position-relative" href="/cart" aria-label="Cart">
                   <svg class="bi" width="24" height="24" aria-hidden="true">
                     <use xlink:href="#cart"></use>
                   </svg>
                   
                   <span 
-                    class="position-absolute top-25 start-75 translate-middle badge rounded-pill bg-danger" 
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
                     id="cart-badge"
                     style="<%= initialCartCount > 0 ? '' : 'display: none;' %>"
                   >
                     <%= initialCartCount %>
                   </span>
                 </a>
-
-                <div class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="cart-dropdown-toggle" id="cart-preview-dropdown" style="min-width: 300px;">
-                  
-                  <div id="cart-preview-items">
-                    <% if (initialCartCount > 0 && session.cart) { %>
-                      <% session.cart.forEach(item => { %>
-                        <div class="dropdown-item d-flex align-items-center px-3 py-2">
-                          <img src="<%= item.imageUrl ? item.imageUrl : '/images/placeholder.png' %>" alt="<%= item.name %>" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;">
-                          <div class="flex-grow-1">
-                            <div class="small"><%= item.name %></div>
-                            <div class="small text-muted"><%= item.quantity %> x $<%= item.price.toFixed(2) %></div>
-                          </div>
-                        </div>
-                      <% }) %>
-                    <% } else { %>
-                      <div class="dropdown-item px-3 py-2" id="cart-preview-empty">Your cart is empty.</div>
-                    <% } %>
-                  </div>
-                  
-                  <div id="cart-preview-footer" style="<%= initialCartCount > 0 ? '' : 'display: none;' %>">
-                    <hr class="dropdown-divider">
-                    
-                    <div class="d-flex justify-content-between align-items-center px-3 py-2">
-                      <strong>Total: $<span id="cart-preview-total"><%= initialTotalPrice.toFixed(2) %></span></strong>
-                      <a href="/cart" class="btn btn-light btn-sm">Go to Cart</a>
-                    </div>
-                  </div>
-                  </div>
               </li>
             </ul>
 

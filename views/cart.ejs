@@ -1,0 +1,115 @@
+<%- include('partials/_top') %>
+
+<head>
+    <style>
+      .cart-item-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        margin-right: 15px;
+        border-radius: 4px;
+      }
+      .cart-total-summary {
+        border-top: 2px solid #333;
+        padding-top: 15px;
+        font-size: 1.25rem;
+      }
+    </style>
+</head>
+
+<main class="container my-4">
+
+  <% if (typeof session !== 'undefined' && !session.authenticated) { %>
+    <div class="alert alert-info" role="alert">
+      <strong>Already have an account?</strong> 
+      <a href="/auth/login" class="alert-link">Login now</a> to use your saved addresses.
+      <br>
+      <strong>New customer?</strong> 
+      <a href="/auth/register" class="alert-link">Register an account</a> to save this cart for later.
+    </div>
+  <% } %>
+  <div class="row">
+    <div class="col-lg-8">
+      <h2>Your Shopping Cart</h2>
+      <hr>
+
+      <% if (!cart || cart.length === 0) { %>
+        <div class="alert alert-info">Your cart is empty.</div>
+        <a href="/products">Go shopping!</a>
+      
+      <% } else { %>
+        <div class="list-group list-group-flush">
+          
+          <% cart.forEach(item => { %>
+            <div class="list-group-item d-flex align-items-center">
+              
+              <img src="<%= item.imageUrl ? item.imageUrl : '/images/placeholder.png' %>" alt="<%= item.name %>" class="cart-item-img">
+              
+              <div class="flex-grow-1">
+                <strong><%= item.name %></strong>
+                <div class="text-muted">$<%= item.price.toFixed(2) %> each</div>
+              </div>
+
+              <form 
+                action="/cart/item/update" 
+                method="POST" 
+                class="d-flex align-items-center"
+              >
+                <input type="hidden" name="productId" value="<%= item.productId %>">
+                
+                <label for="qty-<%= item.productId %>" class="form-label me-2">Qty:</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  name="quantity" 
+                  id="qty-<%= item.productId %>" 
+                  value="<%= item.quantity %>" 
+                  min="1" 
+                  style="width: 70px;"
+                >
+                <button type="submit" class="btn btn-dark btn-sm ms-2">Update</button>
+              </form>
+
+              <form 
+                action="/cart/item/remove" 
+                method="POST" 
+                class="ms-3"
+                onsubmit="return confirm('Remove this item from your cart?');"
+              >
+                <input type="hidden" name="productId" value="<%= item.productId %>">
+                <button type="submit" class="btn btn-outline-danger btn-sm">X</button>
+              </form>
+
+            </div>
+          <% }) %>
+
+        </div>
+      <% } %>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card bg-light p-3">
+        <h4>Order Summary</h4>
+        <hr>
+        <div class="d-flex justify-content-between">
+          <span>Subtotal (<%= locals.initialCartCount || 0 %> items)</span>
+          <strong>$<%= locals.initialTotalPrice || '0.00' %></strong>
+        </div>
+        <div class="d-flex justify-content-between mt-2">
+          <span>Shipping</span>
+          <strong>FREE</strong>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between cart-total-summary">
+          <strong>Total</strong>
+          <strong>$<%= locals.initialTotalPrice || '0.00' %></strong>
+        </div>
+        <div class="d-grid mt-3">
+          <a href="/checkout" class="btn btn-dark btn-lg">Proceed to Checkout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/_bottom') %>
