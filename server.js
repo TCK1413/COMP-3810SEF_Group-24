@@ -10,6 +10,8 @@ const methodOverride = require('method-override');
 const authRoutes = require('./routes/authRoutes'); 
 const userRoutes = require('./routes/userRoutes');
 const addressRoutes = require('./routes/addressRoutes');
+const productRoutes = require('./routes/productRoutes');
+const cartRoutes = require('./routes/cartRoutes');
 
 // ------------------------Initialize Express app and port------------------------
 const app = express(); 
@@ -39,8 +41,25 @@ app.use(cookieSession({
 
 // Make session available to all views 
 app.use((req, res, next) => {
-  res.locals.session = req.session; 
-  next();
+  // 1. Make session object available to all templates (for login status)
+  res.locals.session = req.session;
+
+  // 2. Load cart data from the session for all templates
+  let cart = req.session.cart || [];
+  let totalItems = 0;
+  let totalPrice = 0;
+
+  if (Array.isArray(cart)) {
+    totalItems = cart.reduce((total, item) => total + (item.quantity || 0), 0);
+    totalPrice = cart.reduce((total, item) => total + ((item.quantity || 0) * (item.price || 0)), 0);
+  }
+  
+  // Pass cart data to all EJS templates
+  res.locals.cart = cart; // The cart array (for cart.ejs)
+  res.locals.initialCartCount = totalItems; // (for _top.ejs badge)
+  res.locals.initialTotalPrice = totalPrice.toFixed(2); // (for _top.ejs preview)
+  
+  next(); // Continue to the next middleware or route
 });
 
 // Static Files
@@ -62,6 +81,12 @@ app.use('/user', userRoutes);
 
 // Address Routes
 app.use('/user/addresses', addressRoutes);
+
+// Product Routes
+app.use('/products', productRoutes);
+
+// Cart Routes
+app.use('/cart', cartRoutes);
 
 // Index/Home Route
 app.get('/', (req, res) => { 

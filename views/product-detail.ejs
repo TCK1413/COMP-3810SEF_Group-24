@@ -1,0 +1,89 @@
+<%- include('partials/_top') %>
+
+<main class="container product-detail">
+    <div class="product-gallery">
+        <img src="<%= product.imageUrl %>" alt="<%= product.name %>" class="main-image">
+    </div>
+
+    <div class="product-info">
+        <h1><%= product.name %></h1>
+        <p class="price">$<%= product.price.toFixed(2) %></p>
+        <div class="description">
+            <h2>Description</h2>
+            <p><%= product.description %></p>
+        </div>
+        <div class="stock-status">
+            <% if (product.stock > 0) { %>
+                <p>In Stock: <%= product.stock %> items available</p>
+            <% } else { %>
+                <p class="out-of-stock">Out of Stock</p>
+            <% } %>
+        </div>
+
+        <div class="add-to-cart-controls">
+            <button class="quantity-btn minus">-</button>
+            <input type="number" class="quantity-input" value="1" min="1" max="<%= product.stock %>">
+            <button class="quantity-btn plus">+</button>
+            <button class="add-to-cart-btn" data-product-id="<%= product._id %>">Add to Cart</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    // Quantity control (no changes)
+    document.querySelector('.quantity-btn.plus').addEventListener('click', function() {
+        const input = document.querySelector('.quantity-input');
+        const max = parseInt(input.getAttribute('max'));
+        if (parseInt(input.value) < max) {
+            input.value = parseInt(input.value) + 1;
+        }
+    });
+
+    document.querySelector('.quantity-btn.minus').addEventListener('click', function() {
+        const input = document.querySelector('.quantity-input');
+        if (parseInt(input.value) > 1) {
+            input.value = parseInt(input.value) - 1;
+        }
+    });
+
+    // Add to Cart (MODIFIED SCRIPT)
+    document.querySelector('.add-to-cart-btn').addEventListener('click', async function() {
+        const productId = this.getAttribute('data-product-id');
+        // This selector is fine for the detail page as there is only one
+        const quantity = document.querySelector('.quantity-input').value; 
+
+        try {
+            const response = await fetch('/products/add-to-cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ productId, quantity })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Product added to cart!');
+
+                // --- START: Update Cart Badge ---
+                const cartBadge = document.getElementById('cart-badge');
+                if (cartBadge) {
+                  // Update the badge's text with the new total
+                  cartBadge.innerText = result.totalCartItems;
+                  // Make sure the badge is visible
+                  cartBadge.style.display = 'block';
+                }
+                // --- END: Update Cart Badge ---
+
+            } else {
+                alert(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to add product to cart');
+        }
+    });
+</script>
+
+<%- include('partials/_bottom') %>
