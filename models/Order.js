@@ -46,6 +46,12 @@ const OrderSchema = new Schema({
     postalCode: { type: String, required: true },
     country: { type: String, required: true },
     phone: { type: String }
+  },
+  
+  status: {
+      type: String,
+      enum: ['in_transit', 'delivered'],
+      default: 'in_transit'
   }
 
 }, {

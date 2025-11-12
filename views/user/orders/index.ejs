@@ -18,29 +18,31 @@
         <a class="list-group-item list-group-item-action" href="/user/orders/<%= order._id %>">
           <div class="d-flex justify-content-between align-items-start">
             <div class="me-3 flex-grow-1">
-              <div class="fw-semibold">Order #<%= order._id %></div>
+              <div class="fw-semibold">
+                Order #<%= order._id %>
+                <% if (order.statusView) { %>
+                  <span class="badge <%= order.statusView.className %> ms-2"><%= order.statusView.label %></span>
+                <% } %>
+              </div>
               <div class="text-muted small mb-1">
                 Placed at: <%= (helpers && helpers.formatDate) ? helpers.formatDate(order.createdAt) : order.createdAt %>
                 <% if (order.customerEmail) { %> • Email: <%= order.customerEmail %> <% } %>
               </div>
 
-              <!-- thumbs strip -->
               <div class="d-flex flex-wrap gap-2 mt-1">
                 <% thumbs.forEach(function(it){ 
                      const img = it.imageUrl || (it.images && it.images[0]) || it.image || '/images/placeholder.png';
                 %>
-                  <img src="<%= img %>" alt="" class="rounded border"
-                       style="width:32px;height:32px;object-fit:cover;">
+                  <img src="<%= img %>" alt="" class="rounded border" style="width:32px;height:32px;object-fit:cover;">
                 <% }) %>
                 <% if (extra > 0) { %>
                   <span class="badge text-bg-secondary align-self-center">+<%= extra %></span>
                 <% } %>
               </div>
 
-              <!-- total price -->
               <div class="mt-2 fw-semibold">
-                Total: 
-                <span class="text-primary">$<%= Number(order.totalPrice || 0).toFixed(2) %></span>
+                Total:
+                <span class="text-primary">$<%= Number((order.totalPrice != null ? order.totalPrice : order.totalAmount) || 0).toFixed(2) %></span>
               </div>
             </div>
 

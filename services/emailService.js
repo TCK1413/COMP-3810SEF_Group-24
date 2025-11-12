@@ -1,67 +1,103 @@
 // services/emailService.js
 const nodemailer = require('nodemailer');
 
-// 1. 創建 Nodemailer "Transporter" (發送器)
-// 我們從 .env 檔案中讀取 Gmail 的登入憑證
+// 初始化郵件傳輸
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.GMAIL_USER,       // 您的 Gmail
-    pass: process.env.GMAIL_APP_PASSWORD // 您的 16 位應用程式密碼
-  }
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
 });
 
-// 2. 創建一個函數來發送訂單確認郵件
+/**
+ * 發送訂單確認郵件（帶商品圖片 + 查詢連結）
+ * @param {Object} order - 訂單對象
+ */
 exports.sendOrderConfirmation = async (order) => {
-  if (!order || !order.customerEmail) {
-    console.error('Invalid order data for email.');
-    return;
-  }
+  if (!order || !order.customerEmail) return;
 
-  // 創建郵件內容
-  let itemsHtml = order.items.map(item => `
-    <tr>
-      <td>${item.name} (x${item.quantity})</td>
-      <td style="text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
-    </tr>
-  `).join('');
+  const orderLookupUrl = `http://localhost:8099/orders/lookup`;
+
+  // 拼接每個商品的卡片
+  const itemListHTML = order.items
+    .map(
+      (item) => `
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:10px 0;">
+          <img src="${item.imageUrl || '/images/placeholder.png'}" 
+               alt="${item.name}" 
+               style="width:80px;height:80px;object-fit:cover;border-radius:8px;margin-right:10px;">
+        </td>
+        <td style="padding:10px 0;">
+          <div style="font-weight:600;color:#333;">${item.name}</div>
+          <div style="color:#555;">Quantity: ${item.quantity}</div>
+          <div style="color:#555;">Price: $${item.price.toFixed(2)}</div>
+        </td>
+      </tr>
+    `
+    )
+    .join('');
+
+  const html = `
+  <div style="font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background-color:#f9f9f9;padding:30px;">
+    <div style="max-width:700px;margin:auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+      <div style="background-color:#007bff;color:#fff;padding:20px 30px;">
+        <h2 style="margin:0;">Order Confirmation</h2>
+        <p style="margin:0;font-size:14px;">Thank you for shopping with us!</p>
+      </div>
+
+      <div style="padding:30px;">
+        <h3 style="margin-top:0;">Hello ${order.customerEmail.split('@')[0]},</h3>
+        <p>We’ve received your order and it’s now being processed.</p>
+
+        <h4 style="margin-top:25px;">🛍️ Order Details</h4>
+        <table style="width:100%;border-collapse:collapse;">${itemListHTML}</table>
+
+        <div style="margin-top:20px;font-size:16px;font-weight:bold;">
+          Total: $${order.totalPrice.toFixed(2)}
+        </div>
+
+        <h4 style="margin-top:30px;">🚚 Shipping Address</h4>
+        <p style="color:#555;">
+          ${order.shippingAddress.street}, ${order.shippingAddress.city}<br/>
+          ${order.shippingAddress.country}, ${order.shippingAddress.postalCode}<br/>
+          Phone: ${order.shippingAddress.phone}
+        </p>
+
+        <div style="margin-top:30px;">
+          <a href="${orderLookupUrl}" 
+             style="background-color:#007bff;color:#fff;padding:12px 22px;
+                    text-decoration:none;border-radius:6px;font-weight:600;">
+            View Order Status
+          </a>
+        </div>
+
+        <p style="margin-top:25px;color:#555;">
+          You can view your full order status and delivery updates by clicking the button above.
+        </p>
+      </div>
+
+      <div style="background:#f0f0f0;text-align:center;padding:15px;font-size:12px;color:#777;">
+        This is an automated email. Please do not reply.<br/>
+        &copy; ${new Date().getFullYear()} MyStore. All rights reserved.
+      </div>
+    </div>
+  </div>
+  `;
 
   const mailOptions = {
-    from: `"My Shopping Platform" <${process.env.GMAIL_USER}>`, // 發件人
-    to: order.customerEmail, // 收件人 (遊客或用戶的 Email)
-    subject: `Order Confirmed - #${order._id.toString().slice(-6)}`, // 主題
-    html: `
-      <h1>Thank you for your order!</h1>
-      <p>Hi, your order has been confirmed.</p>
-      <h3>Order Summary (ID: ${order._id.toString().slice(-6)})</h3>
-      <table border="1" cellpadding="10" cellspacing="0" style="width: 100%;">
-        <thead>
-          <tr><th>Item</th><th>Price</th></tr>
-        </thead>
-        <tbody>
-          ${itemsHtml}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td style="text-align: right;"><strong>Total:</strong></td>
-            <td style="text-align: right;"><strong>$${order.totalPrice.toFixed(2)}</strong></td>
-          </tr>
-        </tfoot>
-      </table>
-      <h4>Shipping to:</h4>
-      <p>
-        ${order.shippingAddress.street}<br>
-        ${order.shippingAddress.city}, ${order.shippingAddress.postalCode}<br>
-        ${order.shippingAddress.country}
-      </p>
-    `
+    from: `"MyStore" <${process.env.EMAIL_USER}>`,
+    to: order.customerEmail,
+    subject: `Your Order Confirmation - #${order._id}`,
+    html,
   };
 
-  // 3. 發送郵件
   try {
     await transporter.sendMail(mailOptions);
     console.log(`Order confirmation email sent to ${order.customerEmail}`);
-  } catch (error) {
-    console.error(`Error sending email to ${order.customerEmail}:`, error);
+  } catch (err) {
+    console.error('Failed to send order confirmation email:', err);
   }
 };
+
