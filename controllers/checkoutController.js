@@ -1,229 +1,252 @@
 // controllers/checkoutController.js
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // 初始化 Stripe
+require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../models/Order');
-const User = require('../models/User'); // 用於獲取登入用戶的 Email
-const Address = require('../models/Address'); // 用於獲取登入用戶的地址
-const emailService = require('../services/emailService'); // 引入郵件服務
+const User = require('../models/User');
+const Address = require('../models/Address');
+const emailService = require('../services/emailService');
 const Product = require('../models/Product');
-const { getNames, getCode } = require('country-list');
+const { getNames } = require('country-list');
 
+/* ---------- helpers ---------- */
+function ensureNumber(n, d = 0) {
+  const v = Number(n);
+  return Number.isFinite(v) ? v : d;
+}
 
-/* ---------- 庫存扣減：逐項原子扣減，防止負庫存 ---------- */
 async function adjustStockForItems(items) {
   if (!Array.isArray(items) || items.length === 0) return { ok: true, failed: [] };
-
   const failed = [];
   for (const it of items) {
     const productId = it.productId || it._id;
     const qty = Number(it.quantity || 0);
     if (!productId || !qty) continue;
-
-    // 只有當現有庫存 >= 購買數量時才扣減；$inc 原子操作避免併發問題
     const res = await Product.updateOne(
       { _id: productId, stock: { $gte: qty } },
       { $inc: { stock: -qty } }
     );
-
-    if (!res || res.modifiedCount !== 1) {
-      failed.push({ productId, qty });
-    }
+    if (!res || res.modifiedCount !== 1) failed.push({ productId, qty });
   }
   return { ok: failed.length === 0, failed };
 }
 
-// 1. 顯示結帳頁面 (GET /checkout)
-exports.getCheckoutPage = async (req, res) => {
-  // 購物車是空的，不應該在這裡
-  if (!res.locals.cart || res.locals.cart.length === 0) {
-    return res.redirect('/cart');
+function normalizeCart(req, res) {
+  const cands = [
+    res.locals?.cart,
+    req.session?.cart,
+    Array.isArray(res.locals?.cartItems) ? { items: res.locals.cartItems } : null,
+    Array.isArray(req.session?.cartItems) ? { items: req.session.cartItems } : null,
+  ].filter(Boolean);
+
+  for (const c of cands) {
+    if (Array.isArray(c)) return { items: c };
+    if (Array.isArray(c?.items)) return { items: c.items };
   }
+  return { items: [] };
+}
 
-  let userEmail = null;
-  let userAddresses = [];
-
-  // 如果用戶已登入，預先獲取他們的 Email 和地址
-  if (req.session.authenticated) {
-    try {
-      const user = await User.findById(req.session.userId).lean();
-      userEmail = user.email;
-      
-      // 獲取已保存的地址
-      userAddresses = await Address.find({ user: req.session.userId }).lean();
-      
-    } catch (err) {
-      console.error(err);
-      // 即使出錯也繼續，讓他們手動輸入
-      
-    }
-  }
-  
-  const countries = getNames();	
-
-  res.render('checkout/index', {
-    title: 'Checkout',
-    cart: res.locals.cart,
-    totalPrice: res.locals.initialTotalPrice,
-    userEmail: userEmail, // 可能是 null（遊客）或用戶 Email
-    userAddresses: userAddresses, // 可能是 []（遊客）或地址列表
-    countries: countries
-  });
-};
-
-// 2. 創建 Stripe 付款 Session (POST /checkout/create-session)
-exports.createCheckoutSession = async (req, res) => {
-  const cart = res.locals.cart;
-  if (!cart || cart.length === 0) {
-    return res.redirect('/cart');
-  }
-
-  // 從表單獲取數據
-  const { 
-    customerEmail, 
-    selectedAddress, // 可能是 'new' 或一個地址 ID
-    street, city, postalCode, country, phone // 僅當 'new' 時使用
-  } = req.body;
-
-  let shippingAddress = {};
-  let emailToUse = customerEmail; // 默認使用表單中的 Email（遊客）
-
-  // 決定送貨地址和 Email
+/* ---------- 1) Checkout page ---------- */
+exports.getCheckoutPage = async (req, res, next) => {
   try {
-    if (req.session.authenticated) {
-      const user = await User.findById(req.session.userId).lean();
-      emailToUse = user.email; // 登入用戶，強制使用他們帳戶的 Email
+    const cart = normalizeCart(req, res);
+    if (!cart.items.length) return res.redirect('/cart');
 
-      if (selectedAddress === 'new') {
-        shippingAddress = { street, city, postalCode, country, phone };
-        // (可選) 幫用戶保存這個新地址
-        await Address.create({
-          user: req.session.userId,
-          ...shippingAddress,
-          isDefault: false
-        });
-      } else {
-        // 從數據庫加載已選的地址
-        const address = await Address.findOne({ _id: selectedAddress, user: req.session.userId }).lean();
-        shippingAddress = {
-          street: address.street,
-          city: address.city,
-          postalCode: address.postalCode,
-          country: address.country,
-          phone: address.phone
-        };
+    let totalPrice = res.locals?.initialTotalPrice;
+    if (typeof totalPrice !== 'number') {
+      totalPrice = cart.items.reduce(
+        (sum, it) => sum + ensureNumber(it.price) * ensureNumber(it.quantity, 1),
+        0
+      );
+    }
+
+    const isGuest = !(req.session?.authenticated && req.session?.userId);
+
+    let userEmail = null;
+    let userAddresses = [];
+    if (!isGuest) {
+      try {
+        const user = await User.findById(req.session.userId).lean();
+        if (user?.email) userEmail = user.email;
+        userAddresses = await Address.find({ user: req.session.userId }).lean();
+      } catch (e) {
+        console.error(e);
       }
-    } else {
-      // 遊客，必須手動填寫地址
-      shippingAddress = { street, city, postalCode, country, phone };
     }
-  } catch (err) {
-    console.error(err);
-    return res.redirect('/checkout'); // 出錯了，重試
-  }
 
-  // 將我們的購物車格式轉換為 Stripe 需要的格式
-  const line_items = cart.map(item => {
-    return {
-      price_data: {
-        currency: 'usd', // 貨幣
-        product_data: {
-          name: item.name,
-          images: [item.imageUrl], // 圖片
-        },
-        unit_amount: Math.round(item.price * 100), // 價格 (以美分為單位)
-      },
-      quantity: item.quantity,
-    };
-  });
+    const countries = getNames();
 
-  // 將訂單的臨時數據儲存在 Session 中，以便在 'success' 頁面使用
-  // 這是因為 Stripe Session 只會返回一個 ID，我們需要自己儲存訂單內容
-  req.session.pendingOrderData = {
-    customerEmail: emailToUse,
-    items: cart,
-    totalPrice: parseFloat(res.locals.initialTotalPrice),
-    shippingAddress: shippingAddress,
-    user: req.session.userId || null
-  };
-
-  // 創建 Stripe Checkout Session
-  try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'payment',
-      line_items: line_items,
-      customer_email: emailToUse,
-      // 成功和取消的 URL
-      success_url: `http://localhost:8099/checkout/success?stripe_session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://localhost:8099/checkout/cancel`,
+    return res.render('checkout/index', {
+      title: 'Checkout',
+      cart,
+      totalPrice,
+      userEmail,
+      userAddresses, // [] for guest
+      countries,
+      isGuest,       // ← 前端用它来隐藏保存地址/默认地址等
     });
-
-    // 3. 重定向到 Stripe 的付款頁面
-    res.redirect(303, session.url);
-
-  } catch (e) {
-    console.error(e);
-    res.redirect('/checkout');
-  }
-};
-
-// 3. 付款成功頁面 (GET /checkout/success)
-exports.getSuccessPage = async (req, res, next) => {
-  const stripeSessionId = req.query.stripe_session_id;
-
-  // 檢查是否有臨時訂單數據
-  const pendingOrder = req.session.pendingOrderData;
-
-  if (!stripeSessionId || !pendingOrder) {
-    return res.redirect('/'); // 沒有 session ID 或臨時數據，跳轉回主頁
-  }
-
-  try {
-    // 檢查這個 Stripe 訂單是否已經被處理過了（防止刷新頁面導致重複下單）
-    const existingOrder = await Order.findOne({ stripeSessionId: stripeSessionId });
-    if (existingOrder) {
-      // 已經處理過了，直接顯示成功頁面，但不再發送郵件或清空購物車
-      return res.render('checkout/success', { title: 'Order Confirmed' });
-    }
-
-    // --- 關鍵邏輯：這是第一次處理這個成功的訂單 ---
-
-    // 1) 創建一個新訂單並儲存到我們的數據庫
-    const newOrder = new Order({
-      ...pendingOrder,
-      stripeSessionId: stripeSessionId // 儲存 Stripe ID
-    });
-    await newOrder.save();
-
-    const stockResult = await adjustStockForItems(pendingOrder.items);
-    if (!stockResult.ok) {
-      // 庫存不足或更新失敗的項目集合（課程作業：記錄警告即可；生產可做補償/人工介入）
-      console.warn('Stock deduction failed for items:', stockResult.failed);
-    }
-    
-    // 3) 清空購物車
-    req.session.cart = null; // 清空 cookie/session 中的購物車
-
-    // 4) (可選) 清除臨時訂單數據
-    req.session.pendingOrderData = null;
-
-    // 5) 發送訂單確認郵件
-    try {
-      await emailService.sendOrderConfirmation(newOrder);
-    } catch (mailErr) {
-      console.warn('Send order confirmation mail failed:', mailErr?.message || mailErr);
-    }
-
-    // 6) 顯示成功頁面
-    res.render('checkout/success', { title: 'Order Confirmed' });
-
   } catch (err) {
     next(err);
   }
 };
 
-// 4. 取消付款頁面 (GET /checkout/cancel)
+/* ---------- 2) Save address (AJAX for logged-in users) ---------- */
+exports.saveAddressAjax = async (req, res, next) => {
+  try {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { street, city, postalCode, country, phone, setDefault } = req.body || {};
+    if (!street || !city || !postalCode || !country) {
+      return res.status(400).json({ error: 'Please fill all required address fields.' });
+    }
+
+    const address = await Address.create({
+      user: userId,
+      street,
+      city,
+      postalCode,
+      country,
+      phone: phone || '',
+      isDefault: !!setDefault,
+    });
+
+    if (setDefault) {
+      await Address.updateMany({ user: userId, _id: { $ne: address._id } }, { $set: { isDefault: false } });
+    }
+
+    return res.json({
+      ok: true,
+      address: { _id: address._id, label: `${address.street}, ${address.city}` }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ---------- 3) Create Stripe session (JSON: {url}) ---------- */
+exports.createCheckoutSession = async (req, res, next) => {
+  try {
+    const cartNorm = normalizeCart(req, res);
+    if (!cartNorm.items.length) return res.status(400).json({ error: 'Your cart is empty.' });
+
+    const {
+      useSavedAddress,
+      addressId,
+      address,
+      setDefaultAddress,
+      email,
+    } = req.body || {};
+
+    const isGuest = !(req.session?.authenticated && req.session?.userId);
+    const userId = isGuest ? null : req.session.userId;
+
+    // address
+    let shippingAddress = null;
+
+    if (!isGuest && useSavedAddress && addressId) {
+      const addr = await Address.findOne({ _id: addressId, user: userId }).lean();
+      if (!addr) return res.status(400).json({ error: 'Selected address not found.' });
+      shippingAddress = {
+        street: addr.street, city: addr.city, postalCode: addr.postalCode,
+        country: addr.country, phone: addr.phone || ''
+      };
+      if (setDefaultAddress) {
+        await Address.updateMany({ user: userId }, { $set: { isDefault: false } });
+        await Address.updateOne({ _id: addressId }, { $set: { isDefault: true } });
+      }
+    } else {
+      const a = address || {};
+      if (!a.street || !a.city || !a.postalCode || !a.country) {
+        return res.status(400).json({ error: 'Please complete your shipping address.' });
+      }
+      shippingAddress = {
+        street: a.street, city: a.city, postalCode: a.postalCode,
+        country: a.country, phone: a.phone || ''
+      };
+      if (!isGuest && setDefaultAddress) {
+        const saved = await Address.create({ user: userId, ...shippingAddress, isDefault: true });
+        await Address.updateMany({ user: userId, _id: { $ne: saved._id } }, { $set: { isDefault: false } });
+      }
+    }
+
+    // Stripe items
+    const lineItems = [];
+    let totalAmount = 0;
+    for (const it of cartNorm.items) {
+      const product = await Product.findById(it.productId).lean();
+      if (!product) continue;
+      const unitAmount = Math.round(ensureNumber(product.price) * 100);
+      totalAmount += ensureNumber(product.price) * ensureNumber(it.quantity, 1);
+      lineItems.push({
+        price_data: {
+          currency: 'usd',
+          product_data: { name: product.name, images: product.imageUrl ? [product.imageUrl] : [] },
+          unit_amount: unitAmount,
+        },
+        quantity: ensureNumber(it.quantity, 1),
+      });
+    }
+
+    const successUrl = `${req.protocol}://${req.get('host')}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl  = `${req.protocol}://${req.get('host')}/checkout/cancel`;
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: lineItems,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      customer_email: email || req.session?.user?.email || undefined,
+    });
+
+    req.session.pendingOrderData = {
+      user: userId || null,
+      customerEmail: email || req.session?.user?.email || '',
+      items: cartNorm.items.map(i => ({
+        productId: i.productId,
+        name: i.name,
+        price: ensureNumber(i.price),
+        quantity: ensureNumber(i.quantity, 1),
+        imageUrl: i.imageUrl || '',
+      })),
+      shippingAddress,
+      totalPrice: Number(totalAmount.toFixed(2)),
+    };
+
+    return res.json({ url: session.url });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ---------- 4) Success / 5) Cancel ---------- */
+exports.getSuccessPage = async (req, res, next) => {
+  try {
+    const stripeSessionId = req.query.session_id || req.query.stripe_session_id;
+    const pendingOrder = req.session.pendingOrderData;
+    if (!stripeSessionId || !pendingOrder) return res.redirect('/cart');
+
+    const existed = await Order.findOne({ stripeSessionId });
+    if (existed) return res.render('checkout/success', { title: 'Order Confirmed' });
+
+    const newOrder = new Order({ ...pendingOrder, stripeSessionId, status: 'in_transit' });
+    await newOrder.save();
+
+    const stockResult = await adjustStockForItems(pendingOrder.items);
+    if (!stockResult.ok) console.warn('Stock deduction failed for items:', stockResult.failed);
+
+    req.session.cart = null;
+    req.session.pendingOrderData = null;
+
+    try { await emailService.sendOrderConfirmation(newOrder); }
+    catch (e) { console.warn('Email send failed:', e?.message || e); }
+
+    res.render('checkout/success', { title: 'Order Confirmed' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getCancelPage = (req, res) => {
-  // (可選) 清除臨時訂單數據
   req.session.pendingOrderData = null;
   res.render('checkout/cancel', { title: 'Payment Canceled' });
 };

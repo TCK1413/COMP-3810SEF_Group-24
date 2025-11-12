@@ -4,19 +4,19 @@ const router = express.Router();
 const checkoutController = require('../controllers/checkoutController');
 
 // GET /checkout
-// 顯示結帳頁面 (包含表單)
 router.get('/', checkoutController.getCheckoutPage);
 
-// POST /checkout/create-session
-// 處理結帳表單提交，創建 Stripe session
+// POST /checkout/create-session  
 router.post('/create-session', checkoutController.createCheckoutSession);
 
+// POST /checkout/save-address
+router.post('/save-address', checkoutController.saveAddressAjax);
+
 // GET /checkout/success
-// 用戶付款成功後，Stripe 重定向回來的地方
 router.get('/success', checkoutController.getSuccessPage);
 
 // GET /checkout/cancel
-// 用戶取消付款後，Stripe 重定向回來的地方
 router.get('/cancel', checkoutController.getCancelPage);
 
 module.exports = router;
+
