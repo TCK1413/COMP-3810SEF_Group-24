@@ -2,9 +2,8 @@
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 
-// 状态 -> 徽章展示映射
 function presentStatus(s) {
-  // 返回 { label, className }
+
   switch (s) {
     case 'delivered':
       return { label: 'Delivered', className: 'text-bg-success' };
@@ -61,7 +60,7 @@ exports.getOrderDetail = async (req, res, next) => {
       order: { ...order, statusView: presentStatus(order.status) },
       items,
       totalAmount,
-      publicView: false, // 登录用户视图
+      publicView: false, 
       helpers: { formatDate }
     });
   } catch (err) {
