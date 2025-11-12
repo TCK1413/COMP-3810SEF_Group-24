@@ -1,0 +1,31 @@
+<%- include('../partials/_top', { title: typeof title !== 'undefined' ? title : 'Track Your Order' }) %>
+
+<div class="container py-5" style="max-width: 720px;">
+  <h1 class="h3 mb-4">Track Your Order</h1>
+
+  <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+
+  <form action="/orders/lookup" method="post" class="card shadow-sm">
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="orderId" class="form-label">Order ID</label>
+        <input type="text" class="form-control" id="orderId" name="orderId" required
+               value="<%= (formData && formData.orderId) || '' %>">
+        <div class="form-text">Example: 67123abcde45f67890123456</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email used in the order</label>
+        <input type="email" class="form-control" id="email" name="email" required
+               value="<%= (formData && formData.email) || '' %>">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Track</button>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/_bottom') %>
+

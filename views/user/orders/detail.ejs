@@ -2,26 +2,36 @@
 
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0">Order #<%= order._id %></h1>
-    <a href="/user/orders" class="btn btn-sm btn-outline-secondary">Back to Orders</a>
+    <div>
+      <h1 class="h4 mb-0">
+        Order #<%= order._id %>
+        <% if (order.statusView) { %>
+          <span class="badge <%= order.statusView.className %> ms-2"><%= order.statusView.label %></span>
+        <% } %>
+      </h1>
+      <div class="text-muted small">
+        Placed at: <%= (helpers && helpers.formatDate) ? helpers.formatDate(order.createdAt) : order.createdAt %>
+      </div>
+    </div>
+
+    <% if (publicView) { %>
+      <a href="/orders/lookup" class="btn btn-sm btn-outline-secondary">Back</a>
+    <% } else { %>
+      <a href="/user/orders" class="btn btn-sm btn-outline-secondary">Back to Orders</a>
+    <% } %>
   </div>
 
   <div class="row g-4">
-    <!-- 左侧：订单基本信息（不再展示 Stripe Session 给顾客） -->
     <div class="col-lg-7">
       <div class="card shadow-sm">
         <div class="card-body">
           <h5 class="card-title mb-3">Order Summary</h5>
           <ul class="list-unstyled mb-0">
-            <li class="mb-1">
-              <span class="text-muted">Placed at:</span>
-              <strong><%= (helpers && helpers.formatDate) ? helpers.formatDate(order.createdAt) : order.createdAt %></strong>
-            </li>
             <% if (order.customerEmail) { %>
-            <li class="mb-1">
-              <span class="text-muted">Email:</span>
-              <strong><%= order.customerEmail %></strong>
-            </li>
+              <li class="mb-1"><span class="text-muted">Email:</span> <strong><%= order.customerEmail %></strong></li>
+            <% } %>
+            <% if (order.stripeSessionId && false) { %>
+              <li class="mb-1"><span class="text-muted">Stripe Session:</span> <code><%= order.stripeSessionId %></code></li>
             <% } %>
           </ul>
         </div>
@@ -44,7 +54,6 @@
       <% } %>
     </div>
 
-    <!-- 右侧：商品清单（加图片） -->
     <div class="col-lg-5">
       <div class="card shadow-sm">
         <div class="card-body">
@@ -62,19 +71,15 @@
               %>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                   <div class="d-flex align-items-start">
-                    <img src="<%= img %>" alt="" class="rounded border me-3"
-                         style="width:48px;height:48px;object-fit:cover;">
+                    <img src="<%= img %>" alt="" class="rounded border me-3" style="width:48px;height:48px;object-fit:cover;">
                     <div>
                       <div class="fw-semibold"><%= name %></div>
                       <div class="text-muted small">
                         Qty: <%= qty %>
-                        <% if (price !== null) { %>
-                          • $<%= price.toFixed(2) %> each
-                        <% } %>
+                        <% if (price !== null) { %> • $<%= price.toFixed(2) %> each <% } %>
                       </div>
                     </div>
                   </div>
-
                   <% if (price !== null) { %>
                     <div class="fw-semibold">$<%= (price * qty).toFixed(2) %></div>
                   <% } %>
@@ -93,7 +98,30 @@
   </div>
 
   <div class="mt-4">
-    <a href="/products" class="btn btn-primary">Continue Shopping</a>
+    <div class="alert alert-light border d-flex align-items-center justify-content-between">
+      <div>
+        <strong>Have questions about your order?</strong>
+        <a href="#" class="ms-1" data-bs-toggle="modal" data-bs-target="#supportModal">Contact Customer Service</a>
+      </div>
+      <a href="/products" class="btn btn-primary">Continue Shopping</a>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="supportModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="supportModalLabel">Contact Customer Service (Demo)</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        This is a demonstration page and does not provide real customer service.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
   </div>
 </div>
 

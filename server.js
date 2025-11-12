@@ -15,6 +15,7 @@ const productRoutes = require('./routes/productRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const checkoutRoutes = require('./routes/checkoutRoutes');
 const ordersRoutes = require('./routes/ordersRoutes');
+const orderLookupRoutes = require('./routes/orderLookupRoutes');
 
 // ------------------------Initialize Express app and port------------------------
 const app = express(); 
@@ -96,6 +97,9 @@ app.use('/checkout', checkoutRoutes);
 
 // Order Routes
 app.use('/user/orders', ordersRoutes);
+
+// Order Lookup Routes
+app.use('/orders', orderLookupRoutes);
 
 // Index/Home Route
 app.get('/', (req, res) => { 

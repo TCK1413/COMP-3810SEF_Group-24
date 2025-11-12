@@ -1,142 +1,75 @@
-<%- include('partials/_top') %>
+<%- include('partials/_top', { title: 'Home' }) %>
 
-<main>
-  <div
-    class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-body-tertiary"
-  >
-    <div class="col-md-6 p-lg-5 mx-auto my-5">
-      <h1 class="display-3 fw-bold">Shopping Platform</h1>
-      <h3 class="fw-normal text-muted mb-3">
-        Build anything you want with Aperture
-      </h3>
-      <div class="d-flex gap-3 justify-content-center lead fw-normal">
-        <a class="icon-link" href="#">
-          Learn more
-          <svg class="bi" aria-hidden="true">
-            <use xlink:href="#chevron-right"></use>
-          </svg>
-        </a>
-        <a class="icon-link" href="#">
-          Buy
-          <svg class="bi" aria-hidden="true">
-            <use xlink:href="#chevron-right"></use>
-          </svg>
-        </a>
-      </div>
-    </div>
-    <div class="product-device shadow-sm d-none d-md-block"></div>
-    <div
-      class="product-device product-device-2 shadow-sm d-none d-md-block"
-    ></div>
+<!-- ====== Hero Carousel (replace old hero section) ====== -->
+<div id="homeCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="4000">
+  <!-- 指示点 -->
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+    <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
   </div>
 
-  <div class="d-md-flex flex-md-equal w-100 my-md-3 ps-md-3">
-    <div
-      class="text-bg-dark me-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden"
-    >
-      <div class="my-3 py-3">
-        <h2 class="display-5">Another headline</h2>
-        <p class="lead">And an even wittier subheading.</p>
+  <!-- 幻灯片 -->
+  <div class="carousel-inner">
+    <!-- Slide 1 -->
+    <div class="carousel-item active">
+      <img src="/images/banner1.png" class="d-block w-100" alt="Discover New Arrivals" style="height:75vh; object-fit:cover;">
+      <div class="carousel-caption d-none d-md-block">
+        <h1 class="fw-bold">Discover New Arrivals</h1>
+        <p>Fresh picks across electronics, fashion, home & more.</p>
+        <a href="/products" class="btn btn-primary btn-lg">Shop Now</a>
       </div>
-      <div
-        class="bg-body-tertiary shadow-sm mx-auto"
-        style="width: 80%; height: 300px; border-radius: 21px 21px 0 0"
-      ></div>
     </div>
-    <div
-      class="bg-body-tertiary me-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden"
-    >
-      <div class="my-3 p-3">
-        <h2 class="display-5">Another headline</h2>
-        <p class="lead">And an even wittier subheading.</p>
+
+    <!-- Slide 2 -->
+    <div class="carousel-item">
+      <img src="/images/banner2.png" class="d-block w-100" alt="Big Sale is Here" style="height:75vh; object-fit:cover;">
+      <div class="carousel-caption d-none d-md-block">
+        <h1 class="fw-bold">Big Sale is Here</h1>
+        <p>Up to 50% off selected items this week only.</p>
+        <a href="/products" class="btn btn-light btn-lg">Explore</a>
       </div>
-      <div
-        class="bg-dark shadow-sm mx-auto"
-        style="width: 80%; height: 300px; border-radius: 21px 21px 0 0"
-      ></div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="carousel-item">
+      <img src="/images/banner3.png" class="d-block w-100" alt="Free Shipping" style="height:75vh; object-fit:cover;">
+      <div class="carousel-caption d-none d-md-block">
+        <h1 class="fw-bold">Free Shipping</h1>
+        <p>On orders over $50 — limited time.</p>
+        <a href="/products" class="btn btn-outline-light btn-lg">Learn More</a>
+      </div>
     </div>
   </div>
 
-  <div class="d-md-flex flex-md-equal w-100 my-md-3 ps-md-3">
-    <div
-      class="bg-body-tertiary me-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden"
-    >
-      <div class="my-3 p-3">
-        <h2 class="display-5">Another headline</h2>
-        <p class="lead">And an even wittier subheading.</p>
-      </div>
-      <div
-        class="bg-dark shadow-sm mx-auto"
-        style="width: 80%; height: 300px; border-radius: 21px 21px 0 0"
-      ></div>
-    </div>
-    <div
-      class="text-bg-primary me-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden"
-    >
-      <div class="my-3 py-3">
-        <h2 class="display-5">Another headline</h2>
-        <p class="lead">And an even wittier subheading.</p>
-      </div>
-      <div
-        class="bg-body-tertiary shadow-sm mx-auto"
-        style="width: 80%; height: 300px; border-radius: 21px 21px 0 0"
-      ></div>
-    </div>
-  </div>
+  <!-- 左右箭头 -->
+  <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev" aria-label="Previous">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next" aria-label="Next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+  </button>
+</div>
 
-  <div class="d-md-flex flex-md-equal w-100 my-md-3 ps-md-3">
-    <div
-      class="bg-body-tertiary me-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden"
-    >
-      <div class="my-3 p-3">
-        <h2 class="display-5">Another headline</h2>
-        <p class="lead">And an even wittier subheading.</p>
+<!-- ====== 下面保留你的主页内容（示例两列区块，可替换/删除） ====== -->
+<div class="container py-4">
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="p-4 bg-dark text-light rounded-3 h-100">
+        <h2 class="mb-2">Another headline</h2>
+        <p class="opacity-75">And an even wittier subheading.</p>
+        <a href="/products" class="btn btn-outline-light btn-sm">Browse products</a>
       </div>
-      <div
-        class="bg-body shadow-sm mx-auto"
-        style="width: 80%; height: 300px; border-radius: 21px 21px 0 0"
-      ></div>
     </div>
-    <div
-      class="bg-body-tertiary me-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden"
-    >
-      <div class="my-3 py-3">
-        <h2 class="display-5">Another headline</h2>
-        <p class="lead">And an even wittier subheading.</p>
+    <div class="col-md-6">
+      <div class="p-4 bg-dark text-light rounded-3 h-100">
+        <h2 class="mb-2">Another headline</h2>
+        <p class="opacity-75">And an even wittier subheading.</p>
+        <a href="/orders/lookup" class="btn btn-outline-light btn-sm">Track your order</a>
       </div>
-      <div
-        class="bg-body shadow-sm mx-auto"
-        style="width: 80%; height: 300px; border-radius: 21px 21px 0 0"
-      ></div>
     </div>
   </div>
-
-  <div class="d-md-flex flex-md-equal w-100 my-md-3 ps-md-3">
-    <div
-      class="bg-body-tertiary me-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden"
-    >
-      <div class="my-3 p-3">
-        <h2 class="display-5">Another headline</h2>
-        <p class="lead">And an even wittier subheading.</p>
-      </div>
-      <div
-        class="bg-body shadow-sm mx-auto"
-        style="width: 80%; height: 300px; border-radius: 21px 21px 0 0"
-      ></div>
-    </div>
-    <div
-      class="bg-body-tertiary me-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden"
-    >
-      <div class="my-3 py-3">
-        <h2 class="display-5">Another headline</h2>
-        <p class="lead">And an even wittier subheading.</p>
-      </div>
-      <div
-        class="bg-body shadow-sm mx-auto"
-        style="width: 80%; height: 300px; border-radius: 21px 21px 0 0"
-      ></div>
-    </div>
-  </div>
-</main>
+</div>
 
 <%- include('partials/_bottom') %>
+
