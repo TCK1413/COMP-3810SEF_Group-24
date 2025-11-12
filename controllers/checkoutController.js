@@ -80,9 +80,9 @@ exports.getCheckoutPage = async (req, res, next) => {
       cart,
       totalPrice,
       userEmail,
-      userAddresses, // [] for guest
+      userAddresses, 
       countries,
-      isGuest,       // ← 前端用它来隐藏保存地址/默认地址等
+      isGuest,      
     });
   } catch (err) {
     next(err);

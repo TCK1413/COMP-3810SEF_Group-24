@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const cartController = require('../controllers/cartController');
 
-// English Comment: All routes here read/write from req.session.cart
+// All routes here read/write from req.session.cart
 
 // GET /cart
 // This is the main shopping cart page

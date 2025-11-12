@@ -1,6 +1,4 @@
-/* ===== 导航相关（新增/调整） ===== */
-
-/* 桌面端：悬停显示购物车预览下拉 */
+/* Desktop: show dropdown on hover for nicer UX */
 @media (min-width: 768px) {
   .dropdown:hover .dropdown-menu {
     display: block;
@@ -8,23 +6,79 @@
   }
 }
 
-/* 让内嵌 SVG 图标颜色跟随文字（在深色背景下为白色） */
+/* Let embedded SVG follow text color */
 .navbar .bi { fill: currentColor; }
 
-/* 右侧各组之间的竖线分隔 */
+/* Group dividers on the right side */
 .nav-divider {
   width: 1px;
   height: 24px;
   background-color: rgba(255, 255, 255, .35);
 }
 
-/* 左侧 Home / Product 占左半并均匀分布 */
+/* Layout: left group width on md+ */
 @media (min-width: 768px) {
   .left-nav { width: 50%; }
 }
 
-/* 购物车角标（保持你原先的视觉位置） */
+/* Badge position for cart icon */
 .top-25 { top: 25% !important; }
 
-/* ===== 你原有的样式若有其它内容，请保留在本文件中（下方/上方均可） ===== */
+/* --- Premium look & hover highlight --- */
+.nav-elevated {
+  background: linear-gradient(180deg, #171a1f 0%, #121418 100%);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  backdrop-filter: saturate(1.05) blur(6px);
+}
+
+.navbar .nav-link.fx {
+  position: relative;
+  color: #e7e7ea !important;
+  opacity: .92;
+  transition: color .15s ease, opacity .15s ease;
+}
+
+.navbar .nav-link.fx:hover,
+.navbar .nav-link.fx:focus {
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+.navbar .nav-link.fx::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  bottom: -6px;
+  height: 2px;
+  background: #ff6b7a;
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: 50% 50%;
+  transition: transform .22s ease;
+}
+
+.navbar .nav-link.fx:hover::after,
+.navbar .nav-link.fx:focus::after {
+  transform: scaleX(1);
+}
+
+/* Button subtle enhancement for fashion look */
+.fx-outline {
+  border-radius: 999px;
+  border-width: 1.5px;
+  transition: all .15s ease;
+}
+.fx-outline:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255,255,255,.1);
+}
+
+/* Dropdown card polish */
+.dropdown-menu-dark {
+  --bs-dropdown-bg: #1b1e24;
+  --bs-dropdown-color: #e9e9ee;
+  --bs-dropdown-link-hover-bg: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.06);
+  box-shadow: 0 12px 28px rgba(0,0,0,.4);
+}
 

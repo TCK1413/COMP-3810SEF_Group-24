@@ -28,7 +28,6 @@ exports.postTrack = async (req, res) => {
   const { orderId, email } = req.body;
   const formData = { orderId, email };
 
-  // 基础校验
   if (!orderId || !email) {
     return res.render('orders/track', {
       title: 'Track Your Order',
@@ -55,7 +54,6 @@ exports.postTrack = async (req, res) => {
     });
   }
 
-  // 命中：直接复用订单详情页（公共视图）
   const items = Array.isArray(order.items) ? order.items : [];
   const computedTotal = items.reduce((s, it) => s + Number(it.price || 0) * Number(it.quantity || 0), 0);
   const totalAmount = typeof order.totalPrice === 'number' ? order.totalPrice : computedTotal;
@@ -65,7 +63,7 @@ exports.postTrack = async (req, res) => {
     order: { ...order, statusView: presentStatus(order.status) },
     items,
     totalAmount,
-    publicView: true, // 公共视图：返回按钮不同
+    publicView: true,
     helpers: { formatDate }
   });
 };

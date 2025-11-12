@@ -1,7 +1,6 @@
 // services/emailService.js
 const nodemailer = require('nodemailer');
 
-// 初始化郵件傳輸
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -10,16 +9,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-/**
- * 發送訂單確認郵件（帶商品圖片 + 查詢連結）
- * @param {Object} order - 訂單對象
- */
 exports.sendOrderConfirmation = async (order) => {
   if (!order || !order.customerEmail) return;
 
   const orderLookupUrl = `http://localhost:8099/orders/lookup`;
 
-  // 拼接每個商品的卡片
   const itemListHTML = order.items
     .map(
       (item) => `
