@@ -20,8 +20,8 @@ router.get('/items', cartController.apiGetCart);
 // POST /cart/items -> Add item to cart (Create)
 router.post('/items', cartController.apiAddCartItem);
 
-// PATCH /cart/items/:productId -> Update quantity
-router.patch('/items/:productId', cartController.apiUpdateCartItem);
+// PUT /cart/items/:productId -> Update quantity
+router.put('/items/:productId', cartController.apiUpdateCartItem);
 
 // DELETE /cart/items/:productId -> Remove item
 router.delete('/items/:productId', cartController.apiRemoveCartItem);
