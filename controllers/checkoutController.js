@@ -80,9 +80,9 @@ exports.getCheckoutPage = async (req, res, next) => {
       cart,
       totalPrice,
       userEmail,
-      userAddresses, 
+      userAddresses,
       countries,
-      isGuest,      
+      isGuest,
     });
   } catch (err) {
     next(err);
@@ -140,7 +140,17 @@ exports.createCheckoutSession = async (req, res, next) => {
     const isGuest = !(req.session?.authenticated && req.session?.userId);
     const userId = isGuest ? null : req.session.userId;
 
-    // address
+    const rawEmail = email ? String(email).trim() : '';
+    let finalCustomerEmail = rawEmail;
+
+    if (!finalCustomerEmail && !isGuest && req.session?.user?.email) {
+      finalCustomerEmail = String(req.session.user.email).trim();
+    }
+
+    if (!finalCustomerEmail) {
+      return res.status(400).json({ error: 'Please provide an email address.' });
+    }
+
     let shippingAddress = null;
 
     if (!isGuest && useSavedAddress && addressId) {
@@ -169,7 +179,6 @@ exports.createCheckoutSession = async (req, res, next) => {
       }
     }
 
-    // Stripe items
     const lineItems = [];
     let totalAmount = 0;
     for (const it of cartNorm.items) {
@@ -195,12 +204,12 @@ exports.createCheckoutSession = async (req, res, next) => {
       line_items: lineItems,
       success_url: successUrl,
       cancel_url: cancelUrl,
-      customer_email: email || req.session?.user?.email || undefined,
+      customer_email: finalCustomerEmail,
     });
 
     req.session.pendingOrderData = {
       user: userId || null,
-      customerEmail: email || req.session?.user?.email || '',
+      customerEmail: finalCustomerEmail,
       items: cartNorm.items.map(i => ({
         productId: i.productId,
         name: i.name,
