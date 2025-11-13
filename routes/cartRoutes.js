@@ -5,16 +5,26 @@ const cartController = require('../controllers/cartController');
 
 // All routes here read/write from req.session.cart
 
+// ---------------- Webpage routes (HTML) ----------------
+
 // GET /cart
-// This is the main shopping cart page
+// Main shopping cart page
 router.get('/', cartController.getCartPage);
 
-// POST /cart/item/update
-// This will UPDATE the quantity of an item in the cart.
-router.post('/item/update', cartController.updateCartItem);
+// ---------------- RESTful service routes (JSON) ----------------
+// Base resource: /cart/items
 
-// POST /cart/item/remove
-// This will REMOVE an item from the cart.
-router.post('/item/remove', cartController.removeCartItem);
+// GET /cart/items -> Read cart
+router.get('/items', cartController.apiGetCart);
+
+// POST /cart/items -> Add item to cart (Create)
+router.post('/items', cartController.apiAddCartItem);
+
+// PATCH /cart/items/:productId -> Update quantity
+router.patch('/items/:productId', cartController.apiUpdateCartItem);
+
+// DELETE /cart/items/:productId -> Remove item
+router.delete('/items/:productId', cartController.apiRemoveCartItem);
 
 module.exports = router;
+
