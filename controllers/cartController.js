@@ -154,7 +154,7 @@ exports.apiAddCartItem = async (req, res, next) => {
   }
 };
 
-// PATCH /cart/items/:productId  -> Update quantity (JSON)
+// PUT /cart/items/:productId  -> Update quantity (JSON)
 exports.apiUpdateCartItem = async (req, res, next) => {
   try {
     const { productId } = req.params;
