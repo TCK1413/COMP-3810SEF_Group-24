@@ -14,29 +14,26 @@
         padding-top: 15px;
         font-size: 1.25rem;
       }
+      .empty-cart {
+        text-align: center;
+        padding: 40px 0;
+        color: #777;
+      }
     </style>
 </head>
 
 <main class="container my-4">
-
-  <% if (typeof session !== 'undefined' && !session.authenticated) { %>
-    <div class="alert alert-info" role="alert">
-      <strong>Already have an account?</strong> 
-      <a href="/auth/login" class="alert-link">Login now</a> to use your saved addresses.
-      <br>
-      <strong>New customer?</strong> 
-      <a href="/auth/register" class="alert-link">Register an account</a> to save this cart for later.
-    </div>
-  <% } %>
   <div class="row">
     <div class="col-lg-8">
-      <h2>Your Shopping Cart</h2>
+      <h1>Your Cart</h1>
       <hr>
 
       <% if (!cart || cart.length === 0) { %>
-        <div class="alert alert-info">Your cart is empty.</div>
-        <a href="/products">Go shopping!</a>
-      
+        <div class="empty-cart">
+          <h3>Your cart is empty</h3>
+          <p>Browse our products and add something to your cart.</p>
+          <a href="/products" class="btn btn-dark">Go to Products</a>
+        </div>
       <% } else { %>
         <div class="list-group list-group-flush">
           
@@ -50,35 +47,32 @@
                 <div class="text-muted">$<%= item.price.toFixed(2) %> each</div>
               </div>
 
-              <form 
-                action="/cart/item/update" 
-                method="POST" 
-                class="d-flex align-items-center"
-              >
-                <input type="hidden" name="productId" value="<%= item.productId %>">
-                
-                <label for="qty-<%= item.productId %>" class="form-label me-2">Qty:</label>
-                <input 
-                  type="number" 
-                  class="form-control" 
-                  name="quantity" 
-                  id="qty-<%= item.productId %>" 
-                  value="<%= item.quantity %>" 
-                  min="1" 
+              <div class="d-flex align-items-center">
+                <label for="qty-<%= item.productId %>" class="form-label me-2 mb-0">Qty:</label>
+                <input
+                  type="number"
+                  class="form-control cart-qty-input"
+                  data-product-id="<%= item.productId %>"
+                  id="qty-<%= item.productId %>"
+                  value="<%= item.quantity %>"
+                  min="1"
                   style="width: 70px;"
                 >
-                <button type="submit" class="btn btn-dark btn-sm ms-2">Update</button>
-              </form>
-
-              <form 
-                action="/cart/item/remove" 
-                method="POST" 
-                class="ms-3"
-                onsubmit="return confirm('Remove this item from your cart?');"
-              >
-                <input type="hidden" name="productId" value="<%= item.productId %>">
-                <button type="submit" class="btn btn-outline-danger btn-sm">X</button>
-              </form>
+                <button
+                  type="button"
+                  class="btn btn-dark btn-sm ms-2 cart-update-btn"
+                  data-product-id="<%= item.productId %>"
+                >
+                  Update
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-danger btn-sm ms-3 cart-remove-btn"
+                  data-product-id="<%= item.productId %>"
+                >
+                  X
+                </button>
+              </div>
 
             </div>
           <% }) %>
@@ -112,4 +106,68 @@
   </div>
 </main>
 
+<script>
+  async function callCartApi(method, productId, body) {
+    const options = { method, headers: {} };
+    if (body) {
+      options.headers['Content-Type'] = 'application/json';
+      options.body = JSON.stringify(body);
+    }
+    const response = await fetch(`/cart/items/${productId}`, options);
+    if (!response.ok) {
+      let errorMessage = `Request failed with status ${response.status}`;
+      try {
+        const data = await response.json();
+        if (data && data.message) {
+          errorMessage = data.message;
+        }
+      } catch (e) {
+        // ignore JSON parse errors
+      }
+      throw new Error(errorMessage);
+    }
+    return response.json();
+  }
+
+  document.querySelectorAll('.cart-update-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const productId = btn.getAttribute('data-product-id');
+      const input = document.querySelector(
+        `.cart-qty-input[data-product-id="${productId}"]`
+      );
+      const quantity = parseInt(input.value, 10);
+
+      if (!Number.isInteger(quantity) || quantity <= 0) {
+        alert('Quantity must be at least 1.');
+        return;
+      }
+
+      try {
+        await callCartApi('PATCH', productId, { quantity });
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Failed to update cart item');
+      }
+    });
+  });
+
+  document.querySelectorAll('.cart-remove-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const productId = btn.getAttribute('data-product-id');
+      if (!confirm('Remove this item from your cart?')) {
+        return;
+      }
+      try {
+        await callCartApi('DELETE', productId);
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Failed to remove cart item');
+      }
+    });
+  });
+</script>
+
 <%- include('../partials/_bottom') %>
+

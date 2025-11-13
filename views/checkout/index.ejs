@@ -17,7 +17,7 @@
         <label class="form-label">Shipping Address</label>
 
         <% if (!isGuest) { %>
-          <!-- Select Saved Address -->
+          <!-- Only logged-in users see saved addresses -->
           <div class="mb-2">
             <label class="form-label small mb-1" for="addressSelect">Select Saved Address</label>
             <select id="addressSelect" class="form-select">
@@ -32,14 +32,13 @@
             </select>
           </div>
 
-          <!-- Only User show: set default -->
           <div class="form-check mb-2">
             <input class="form-check-input" type="checkbox" id="setDefaultAddress">
             <label class="form-check-label" for="setDefaultAddress">Set as default address</label>
           </div>
         <% } %>
 
-        <!-- new address form -->
+        <!-- New address form -->
         <div id="newAddressForm" class="<%= (!isGuest && userAddresses && userAddresses.length) ? 'd-none' : '' %>">
           <div class="row g-3">
             <div class="col-12">
@@ -72,7 +71,6 @@
           </div>
 
           <% if (!isGuest) { %>
-            <!-- only user show: save address button -->
             <div class="mt-3">
               <button id="saveAddressBtn" class="btn btn-outline-secondary btn-sm">
                 Save this address
@@ -84,10 +82,9 @@
 
       <hr class="my-4">
 
-      <!-- payment button -->
+      <!-- Payment button -->
       <div class="d-grid">
         <button id="checkoutBtn" class="btn btn-dark btn-lg">
-          <!-- credit card icon -->
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                fill="currentColor" class="me-2" viewBox="0 0 16 16" aria-hidden="true">
             <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1H0V4z"/>
@@ -103,7 +100,7 @@
       </p>
     </div>
 
-    <!-- right side cart info -->
+    <!-- Cart summary -->
     <div class="col-lg-4">
       <h3 class="h5">Your Cart</h3>
       <% if (cart.items && cart.items.length) { %>
@@ -196,7 +193,14 @@ if (!IS_GUEST) {
 }
 
 document.getElementById('checkoutBtn').addEventListener('click', async () => {
-  const email  = document.getElementById('email').value.trim();
+  const emailEl = document.getElementById('email');
+  const email   = emailEl ? emailEl.value.trim() : '';
+
+  if (!email) {
+    alert('Please enter your email address.');
+    if (emailEl) emailEl.focus();
+    return;
+  }
 
   let payload = { email };
 
@@ -245,7 +249,11 @@ document.getElementById('checkoutBtn').addEventListener('click', async () => {
       body: JSON.stringify(payload),
     });
     const data = await resp.json();
-    if (!data.url) throw new Error(data.error || 'Failed to create checkout session');
+    if (!resp.ok || !data.url) {
+      const msg = data.error || 'Failed to create checkout session.';
+      alert(msg);
+      return;
+    }
     window.location.href = data.url;
   } catch (err) {
     console.error(err);

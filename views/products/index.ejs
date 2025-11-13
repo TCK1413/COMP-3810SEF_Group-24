@@ -1,4 +1,4 @@
-<%- include('../partials/_top') %>
+<%- include('partials/_top') %>
 
 <head>
     <title><%= title %></title>
@@ -30,7 +30,13 @@
                  
                 <div class="add-to-cart-controls">
                     <button class="quantity-btn minus" data-product-id="<%= product._id %>">-</button>
-                    <input type="number" class="quantity-input" data-product-id="<%= product._id %>" value="1" min="1" max="<%= product.stock %>">
+                    <input 
+                      type="number" 
+                      class="quantity-input" 
+                      data-product-id="<%= product._id %>" 
+                      value="1" 
+                      min="1" 
+                      max="<%= product.stock %>">
                     <button class="quantity-btn plus" data-product-id="<%= product._id %>">+</button>
                     <button class="add-to-cart-btn" data-product-id="<%= product._id %>">Add to Cart</button>
                 </div>
@@ -40,108 +46,133 @@
 </main>
 
 <script>
-    // --- Quantity Controls (No changes) ---
-    document.querySelectorAll('.quantity-btn.plus').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = this.getAttribute('data-product-id');
-            const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-            const max = parseInt(input.getAttribute('max'));
-            if (parseInt(input.value) < max) {
-                input.value = parseInt(input.value) + 1;
-            }
-        });
+  // Quantity + / - controls
+  document.querySelectorAll('.quantity-btn.plus').forEach((btn) => {
+    btn.addEventListener('click', function () {
+      const productId = this.getAttribute('data-product-id');
+      const input = document.querySelector(
+        `.quantity-input[data-product-id="${productId}"]`
+      );
+      if (!input) return;
+      const max = parseInt(input.getAttribute('max'), 10);
+      const current = parseInt(input.value, 10) || 1;
+      if (current < max) {
+        input.value = current + 1;
+      }
     });
-    document.querySelectorAll('.quantity-btn.minus').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = this.getAttribute('data-product-id');
-            const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-            if (parseInt(input.value) > 1) {
-                input.value = parseInt(input.value) - 1;
-            }
-        });
+  });
+
+  document.querySelectorAll('.quantity-btn.minus').forEach((btn) => {
+    btn.addEventListener('click', function () {
+      const productId = this.getAttribute('data-product-id');
+      const input = document.querySelector(
+        `.quantity-input[data-product-id="${productId}"]`
+      );
+      if (!input) return;
+      const current = parseInt(input.value, 10) || 1;
+      if (current > 1) {
+        input.value = current - 1;
+      }
+    });
+  });
+
+  // Helper: update cart preview dropdown in _top.ejs
+  function updateCartPreview(newCart, newTotalPrice) {
+    const itemsContainer = document.getElementById('cart-preview-items');
+    const footerContainer = document.getElementById('cart-preview-footer');
+    const totalSpan = document.getElementById('cart-preview-total');
+    const emptyPlaceholder = document.getElementById('cart-preview-empty');
+
+    if (!itemsContainer || !footerContainer || !totalSpan) {
+      return;
+    }
+
+    itemsContainer.innerHTML = '';
+
+    if (!Array.isArray(newCart) || newCart.length === 0) {
+      if (emptyPlaceholder) {
+        emptyPlaceholder.innerText = 'Your cart is empty.';
+        emptyPlaceholder.style.display = 'block';
+      } else {
+        itemsContainer.innerHTML =
+          '<div class="dropdown-item px-3 py-2" id="cart-preview-empty">Your cart is empty.</div>';
+      }
+      footerContainer.style.display = 'none';
+      return;
+    }
+
+    newCart.forEach((item) => {
+      const imageUrl = item.imageUrl || '/images/placeholder.png';
+      const price = Number(item.price || 0).toFixed(2);
+      const qty = item.quantity || 0;
+
+      const row = `
+        <div class="dropdown-item d-flex align-items-center px-3 py-2">
+          <img src="${imageUrl}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px; border-radius: 10px;">
+          <div class="flex-grow-1">
+            <div class="small fw-semibold text-white">${item.name}</div>
+            <div class="small text-muted">${qty} x $${price}</div>
+          </div>
+        </div>
+      `;
+      itemsContainer.insertAdjacentHTML('beforeend', row);
     });
 
-    // --- Helper function to update the cart preview dropdown (No changes) ---
-    function updateCartPreview(cartData, totalPrice) {
-      const itemsContainer = document.getElementById('cart-preview-items');
-      const footerContainer = document.getElementById('cart-preview-footer');
-      const totalSpan = document.getElementById('cart-preview-total');
-      
-      if (!itemsContainer || !footerContainer || !totalSpan) return; 
-      
-      itemsContainer.innerHTML = '';
-      
-      if (!cartData || cartData.length === 0) {
-        itemsContainer.innerHTML = '<div class="dropdown-item px-3 py-2" id="cart-preview-empty">Your cart is empty.</div>';
-        footerContainer.style.display = 'none'; 
+    totalSpan.innerText = newTotalPrice;
+    footerContainer.style.display = 'block';
+    if (emptyPlaceholder) {
+      emptyPlaceholder.style.display = 'none';
+    }
+  }
+
+  // Add to Cart using RESTful service: POST /cart/items
+  document.querySelectorAll('.add-to-cart-btn').forEach((btn) => {
+    btn.addEventListener('click', async function () {
+      const productId = this.getAttribute('data-product-id');
+      const input = document.querySelector(
+        `.quantity-input[data-product-id="${productId}"]`
+      );
+      const quantity = input ? parseInt(input.value, 10) || 1 : 1;
+      const productName =
+        this.closest('.product-card').querySelector('.product-name').innerText;
+
+      if (!confirm(`Add ${quantity} x ${productName} to your cart?`)) {
         return;
       }
 
-      cartData.forEach(item => {
-        const imageUrl = item.imageUrl ? item.imageUrl : '/images/placeholder.png'; 
-        const itemHtml = `
-          <div class="dropdown-item d-flex align-items-center px-3 py-2">
-            <img src="${imageUrl}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;">
-            <div class="flex-grow-1">
-              <div class="small">${item.name}</div>
-              <div class="small text-muted">${item.quantity} x $${item.price.toFixed(2)}</div>
-            </div>
-          </div>
-        `;
-        itemsContainer.innerHTML += itemHtml;
-      });
-
-      totalSpan.innerText = totalPrice;
-      footerContainer.style.display = 'block'; 
-    }
-
-
-    // --- Add to Cart Fetch Logic (MODIFIED) ---
-    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
-        btn.addEventListener('click', async function() {
-            const productId = this.getAttribute('data-product-id');
-            const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-            const quantity = input.value;
-            const productName = this.closest('.product-card').querySelector('.product-name').innerText;
-
-            // --- MODIFICATION: Added confirmation dialog ---
-            if (confirm(`Add ${quantity} x ${productName} to your cart?`)) {
-                
-                // If user clicks "OK", run the fetch logic
-                try {
-                    const response = await fetch('/products/add-to-cart', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ productId, quantity })
-                    });
-
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        // Update Badge
-                        const cartBadge = document.getElementById('cart-badge');
-                        if (cartBadge) {
-                          cartBadge.innerText = result.totalCartItems;
-                          cartBadge.style.display = 'block';
-                        }
-                        
-                        // Update Preview Dropdown
-                        updateCartPreview(result.newCart, result.newTotalPrice);
-                        
-                    } else {
-                        alert(result.message);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Failed to add product to cart');
-                }
-            }
-            // else: If user clicks "Cancel", do nothing.
-            // --- END MODIFICATION ---
+      try {
+        const response = await fetch('/cart/items', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productId, quantity }),
         });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          alert('Product added to cart!');
+
+          // Update cart badge
+          const cartBadge = document.getElementById('cart-badge');
+          if (cartBadge) {
+            cartBadge.innerText = result.totalCartItems;
+            cartBadge.style.display = result.totalCartItems > 0 ? 'block' : 'none';
+          }
+
+          // Update preview dropdown
+          updateCartPreview(result.newCart, result.newTotalPrice);
+        } else {
+          alert(result.message || 'Failed to add product to cart');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Failed to add product to cart');
+      }
     });
+  });
 </script>
 
-<%- include('../partials/_bottom') %>
+<%- include('partials/_bottom') %>
+
