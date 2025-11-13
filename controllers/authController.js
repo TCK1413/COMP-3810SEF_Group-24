@@ -1,4 +1,3 @@
-
 // ------------------------Import the User model------------------------
 const User = require('../models/User');
 
@@ -26,7 +25,7 @@ exports.handleRegistration = async (req, res) => {
   }
 
   // Check if username or email already exists in the database
-  try { 
+  try {
     const existingUser = await User.findOne({ $or: [{ username: username }, { email: email }] });
     if (existingUser) {
       // If user found, render registration page with error
@@ -75,16 +74,16 @@ exports.getLoginPage = (req, res) => {
 // Function: Handle login form submission
 exports.handleLogin = async (req, res) => {
   // Get form data from request body
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
   try {
-    // Find the user by username
-    const user = await User.findOne({ username: username });
+    // Find the user by email
+    const user = await User.findOne({ email: email });
 
     // Check if user exists
     if (!user) {
       // User not found
-      return res.render('auth/login', { error: 'Invalid username or password.' });
+      return res.render('auth/login', { error: 'Invalid email or password.' });
     }
 
     const isMatch = (password === user.password);
@@ -92,14 +91,15 @@ exports.handleLogin = async (req, res) => {
     // Check if password matches
     if (!isMatch) {
       // Password does not match
-      return res.render('auth/login', { error: 'Invalid username or password.' });
+      return res.render('auth/login', { error: 'Invalid email or password.' });
     }
 
     // Login successful: Create a session
-    // Store session data in the cookie
     req.session.authenticated = true;
+    // Keep username for existing code that uses it (e.g. navbar “Welcome, xxx”)
     req.session.username = user.username;
-    req.session.userId = user._id; // Store user ID for future use
+    req.session.userId = user._id;
+    req.session.email = user.email;
 
     // Redirect to the home page (or user profile)
     res.redirect('/'); // Redirect to home page
@@ -114,8 +114,7 @@ exports.handleLogin = async (req, res) => {
 // === Logout Functions ===
 // Add controller function for logout
 exports.handleLogout = (req, res) => {
-  req.session = null; // 
+  req.session = null;
   res.redirect('/');
 };
-
 

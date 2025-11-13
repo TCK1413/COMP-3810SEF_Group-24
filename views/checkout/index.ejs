@@ -205,6 +205,7 @@ document.getElementById('checkoutBtn').addEventListener('click', async () => {
   let payload = { email };
 
   if (IS_GUEST) {
+    // Guest: must fill full address form
     const street = document.getElementById('street').value.trim();
     const city   = document.getElementById('city').value.trim();
     const postal = document.getElementById('postalCode').value.trim();
@@ -218,28 +219,19 @@ document.getElementById('checkoutBtn').addEventListener('click', async () => {
     payload.useSavedAddress = false;
     payload.address = { street, city, postalCode: postal, country, phone };
   } else {
+    // Logged-in user: MUST choose a saved address
     const sel = document.getElementById('addressSelect');
     const setDef = document.getElementById('setDefaultAddress')?.checked || false;
 
-    if (sel && sel.value) {
-      payload.useSavedAddress = true;
-      payload.addressId = sel.value;
-      payload.setDefaultAddress = !!setDef;
-    } else {
-      const street = document.getElementById('street').value.trim();
-      const city   = document.getElementById('city').value.trim();
-      const postal = document.getElementById('postalCode').value.trim();
-      const country= document.getElementById('country').value;
-      const phone  = document.getElementById('phone').value.trim();
-
-      if (!street || !city || !postal || !country) return alert('Please complete the address form.');
-      if (!isDigits(postal)) return alert('Postal Code must be digits only.');
-      if (phone && !isDigits(phone)) return alert('Phone must be digits only.');
-
-      payload.useSavedAddress = false;
-      payload.address = { street, city, postalCode: postal, country, phone };
-      payload.setDefaultAddress = !!setDef;
+    if (!sel || !sel.value) {
+      alert('Please select a saved address before continuing.');
+      if (sel) sel.focus();
+      return;
     }
+
+    payload.useSavedAddress = true;
+    payload.addressId = sel.value;
+    payload.setDefaultAddress = !!setDef;
   }
 
   try {
