@@ -229,29 +229,53 @@ exports.createCheckoutSession = async (req, res, next) => {
 
 /* ---------- 4) Success / 5) Cancel ---------- */
 exports.getSuccessPage = async (req, res, next) => {
+  // 兼容本地和 Render：有的用 session_id，有的用 stripe_session_id
+  const stripeSessionId = req.query.session_id || req.query.stripe_session_id;
+
+  // 我們在 createCheckoutSession 裡存進去的臨時訂單資料
+  const pendingOrder = req.session.pendingOrderData;
+
+  if (!stripeSessionId || !pendingOrder) {
+    // 沒有資料就回到購物車
+    return res.redirect('/cart');
+  }
+
   try {
-    const stripeSessionId = req.query.session_id || req.query.stripe_session_id;
-    const pendingOrder = req.session.pendingOrderData;
-    if (!stripeSessionId || !pendingOrder) return res.redirect('/cart');
+    // 1. 防止刷新成功頁面造成重複下單：先檢查這個 session 是否已經建過訂單
+    let order = await Order.findOne({ stripeSessionId });
+    if (!order) {
+      // 1a. 第一次處理這個 session：建立新訂單
+      order = new Order({
+        ...pendingOrder,      // items / totalPrice / shippingAddress / user / customerEmail
+        stripeSessionId,
+      });
+      await order.save();
 
-    const existed = await Order.findOne({ stripeSessionId });
-    if (existed) return res.render('checkout/success', { title: 'Order Confirmed' });
+      // 1b. 扣庫存
+      for (const item of pendingOrder.items) {
+        await Product.updateOne(
+          { _id: item.productId },
+          { $inc: { stock: -Number(item.quantity || 1) } }
+        );
+      }
 
-    const newOrder = new Order({ ...pendingOrder, stripeSessionId, status: 'in_transit' });
-    await newOrder.save();
+      // 1c. 發送確認電郵（如果失敗只記錄錯誤，不影響後面流程）
+      try {
+        await emailService.sendOrderConfirmation(order);
+      } catch (err) {
+        console.error('Failed to send order confirmation email:', err);
+      }
+    }
 
-    const stockResult = await adjustStockForItems(pendingOrder.items);
-    if (!stockResult.ok) console.warn('Stock deduction failed for items:', stockResult.failed);
-
-    req.session.cart = null;
+    // 2. 無論是不是重複刷新，都要清空購物車和臨時訂單資料
+    //    這裡一定要設成「空陣列」，之後 req.session.cart.findIndex 才不會報錯
+    req.session.cart = [];
     req.session.pendingOrderData = null;
 
-    try { await emailService.sendOrderConfirmation(newOrder); }
-    catch (e) { console.warn('Email send failed:', e?.message || e); }
-
-    res.render('checkout/success', { title: 'Order Confirmed' });
+    // 3. 顯示成功頁面
+    return res.render('checkout/success', { title: 'Order Confirmed' });
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 
