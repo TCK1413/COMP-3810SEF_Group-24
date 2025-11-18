@@ -2,7 +2,7 @@
 // Send order confirmation email via Resend HTTP API instead of SMTP.
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM || 'My Shop <no-reply@example.com>';
+const EMAIL_FROM = process.env.EMAIL_FROM || 'Fashion Shop <no-reply@example.com>';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:8099';
 
 if (!RESEND_API_KEY) {

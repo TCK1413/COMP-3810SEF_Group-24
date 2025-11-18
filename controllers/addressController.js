@@ -1,5 +1,5 @@
 const Address = require('../models/Address');
-// --- MODIFICATION: Import country-list module ---
+// --- mport country-list module ---
 const { getNames } = require('country-list');
 
 exports.listAddresses = async (req, res, next) => {
@@ -15,7 +15,7 @@ exports.listAddresses = async (req, res, next) => {
 };
 
 exports.newAddressForm = (req, res) => {
-  // --- MODIFICATION: Pass countries to the template ---
+  // --- Pass countries to the template ---
   res.render('user/address-form', { 
     mode: 'create', 
     address: {}, 
@@ -45,7 +45,7 @@ exports.createAddress = async (req, res) => {
     if (e.name === 'ValidationError') {
       errorMessage = Object.values(e.errors).map(val => val.message)[0];
     }
-    // --- MODIFICATION: Pass countries back on error ---
+    // --- Pass countries back on error ---
     res.status(400).render('user/address-form', { 
       mode: 'create', 
       address: req.body, 
@@ -61,7 +61,7 @@ exports.editAddressForm = async (req, res, next) => {
     const address = await Address.findOne({ _id: req.params.addressId, user: userId }).lean();
     if (!address) return res.redirect('/user/addresses');
     
-    // --- MODIFICATION: Pass countries to the template ---
+    // --- Pass countries to the template ---
     res.render('user/address-form', { 
       mode: 'edit', 
       address, 
@@ -94,7 +94,7 @@ exports.updateAddress = async (req, res) => {
     if (e.name === 'ValidationError') {
       errorMessage = Object.values(e.errors).map(val => val.message)[0];
     }
-    // --- MODIFICATION: Pass countries back on error ---
+    // --- Pass countries back on error ---
     res.status(400).render('user/address-form', {
       mode: 'edit',
       address: { _id: req.params.addressId, ...req.body },
@@ -104,7 +104,6 @@ exports.updateAddress = async (req, res) => {
   }
 };
 
-// ... (deleteAddress and setDefaultAddress functions remain unchanged) ...
 exports.deleteAddress = async (req, res, next) => {
   try {
     const userId = req.session.userId;

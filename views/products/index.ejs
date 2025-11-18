@@ -1,144 +1,305 @@
 <%- include('../partials/_top') %>
 
+<% 
+function generatePageUrl(pageNum) {
+let params = new URLSearchParams(filters);
+params.set('page', pageNum);
+return '/products?' + params.toString();
+}
+%>
+
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/product.css">
 </head>
+<body>
 
-<main class="container">
-    <h1>Products</h1>
-    
-    <div class="products-grid">
-        <% products.forEach(product => { %>
-            <div class="product-card">
-                <a href="/products/<%= product._id %>">
-                    <img 
-                      src="<%= (product.imageUrl) ? product.imageUrl : '/images/placeholder.png' %>" 
-                      alt="<%= product.name %>" 
-                      class="product-image"
-                    >
-                    <span class="product-gender 
-                        <%= product.gender === 'male' ? 'gender-male' : 
-                           product.gender === 'female' ? 'gender-female' : 'gender-unisex' %>">
-                        <%= product.gender === 'male' ? 'Men' : 
-                           product.gender === 'female' ? 'Women' : 'Unisex' %>
-                    </span>
-                    <h3 class="product-name"><%= product.name %></h3>
-                </a>
-                <p class="product-price">$<%= product.price.toFixed(2) %></p>
-                 
-                <div class="add-to-cart-controls">
-                    <button class="quantity-btn minus" data-product-id="<%= product._id %>">-</button>
-                    <input 
-                      type="number" 
-                      class="quantity-input" 
-                      data-product-id="<%= product._id %>" 
-                      value="1" 
-                      min="1" 
-                      max="<%= product.stock %>">
-                    <button class="quantity-btn plus" data-product-id="<%= product._id %>">+</button>
-                    <button class="add-to-cart-btn" data-product-id="<%= product._id %>">Add to Cart</button>
+    <main class="container">
+        <h1>Products</h1>
+        
+        <!-- filters -->
+        <div class="filters-container" style="margin: 20px 0; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #0a3d34;">
+            <form method="get" action="/products" class="filters-form">
+                <div class="filter-row" style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px;">
+                <div class="filter-group">
+                    <label for="category" style="display: block; margin-bottom: 5px; font-weight: bold; color: #fff;">Category</label>
+                    <select name="category" id="category" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff;">
+                    <option value="">All Categories</option>
+                    <option value="shirt" <%= filters.category === 'shirt' ? 'selected' : '' %>>Shirts</option>
+                    <option value="pants" <%= filters.category === 'pants' ? 'selected' : '' %>>Pants</option>
+                    <option value="dress" <%= filters.category === 'dress' ? 'selected' : '' %>>Dresses</option>
+                    <option value="shoes" <%= filters.category === 'shoes' ? 'selected' : '' %>>Shoes</option>
+                    <option value="accessories" <%= filters.category === 'accessories' ? 'selected' : '' %>>Accessories</option>
+                    </select>
                 </div>
-            </div>
-        <% }) %>
-    </div>
-</main>
-
-<script>
-  // Quantity + / - controls
-  document.querySelectorAll('.quantity-btn.plus').forEach((btn) => {
-    btn.addEventListener('click', function () {
-      const productId = this.getAttribute('data-product-id');
-      const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-      if (!input) return;
-      const max = parseInt(input.getAttribute('max'), 10);
-      const current = parseInt(input.value, 10) || 1;
-      if (current < max) input.value = current + 1;
-    });
-  });
-
-  document.querySelectorAll('.quantity-btn.minus').forEach((btn) => {
-    btn.addEventListener('click', function () {
-      const productId = this.getAttribute('data-product-id');
-      const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-      if (!input) return;
-      const current = parseInt(input.value, 10) || 1;
-      if (current > 1) input.value = current - 1;
-    });
-  });
-
-  // Update cart preview dropdown
-  function updateCartPreview(newCart, newTotalPrice) {
-    const itemsContainer = document.getElementById('cart-preview-items');
-    const footerContainer = document.getElementById('cart-preview-footer');
-    const totalSpan = document.getElementById('cart-preview-total');
-    const emptyPlaceholder = document.getElementById('cart-preview-empty');
-
-    if (!itemsContainer) return;
-
-    itemsContainer.innerHTML = '';
-
-    if (!Array.isArray(newCart) || newCart.length === 0) {
-      if (emptyPlaceholder) {
-        emptyPlaceholder.innerText = 'Your cart is empty.';
-        emptyPlaceholder.style.display = 'block';
-      }
-      footerContainer.style.display = 'none';
-      return;
-    }
-
-    newCart.forEach((item) => {
-      const row = `
-        <div class="dropdown-item d-flex align-items-center px-3 py-2">
-          <img src="${item.imageUrl || '/images/placeholder.png'}"
-               style="width:50px;height:50px;object-fit:cover;margin-right:10px;border-radius:10px;">
-          <div class="flex-grow-1">
-            <div class="small fw-semibold text-white">${item.name}</div>
-            <div class="small text-muted">${item.quantity} x $${Number(item.price).toFixed(2)}</div>
-          </div>
+                
+                <div class="filter-group">
+                    <label for="gender" style="display: block; margin-bottom: 5px; font-weight: bold; color: #fff;">Gender</label>
+                    <select name="gender" id="gender" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff;">
+                    <option value="">All Genders</option>
+                    <option value="male" <%= filters.gender === 'male' ? 'selected' : '' %>>Male</option>
+                    <option value="female" <%= filters.gender === 'female' ? 'selected' : '' %>>Female</option>
+                    <option value="unisex" <%= filters.gender === 'unisex' ? 'selected' : '' %>>Unisex</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #fff;">
+                        Price Range: $<span id="minPriceValue"><%= filters.minPrice || 0 %></span> - $<span id="maxPriceValue"><%= filters.maxPrice || 200 %></span>
+                    </label>
+                    
+                    <input type="range" name="minPrice" id="minPrice" 
+                            min="0" max="200" step="10" 
+                            value="<%= filters.minPrice || 0 %>"
+                            style="width: 100%; margin-bottom: 10px;">
+                            
+                    <input type="range" name="maxPrice" id="maxPrice" 
+                            min="0" max="200" step="10" 
+                            value="<%= filters.maxPrice || 200 %>"
+                            style="width: 100%;">
+                            
+                    <input type="hidden" name="priceFilter" value="true">
+                    </div>
+                
+                <div class="filter-actions" style="align-self: flex-end;">
+                    <button type="submit" style="padding: 8px 15px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">Filter</button>
+                    <a href="/products" style="margin-left: 10px; padding: 8px 15px; background-color: #f0f0f0; color: #333; border: none; border-radius: 4px; text-decoration: none;">Reset</a>
+                </div>
+                </div>
+            </form>
         </div>
-      `;
-      itemsContainer.insertAdjacentHTML('beforeend', row);
-    });
 
-    totalSpan.innerText = newTotalPrice;
-    footerContainer.style.display = 'block';
-    if (emptyPlaceholder) emptyPlaceholder.style.display = 'none';
-  }
+        <div class="filter-results" style="margin: 10px 0; padding: 10px; background-color: #f9f9f9; border-radius: 4px;">
+            <p style="margin: 0; font-weight: bold;">
+                <% if (filters.category || filters.gender || filters.minPrice || filters.maxPrice) { %>
+                Showing <span style="color: #4caf50;"><%= totalProducts %></span> products matching your filters
+                <% } else { %>
+                Showing all <span style="color: #4caf50;"><%= totalProducts %></span> products
+                <% } %>
+            </p>
+        </div>
 
-  // Add to Cart using RESTful API (NO confirm, NO alert)
-  document.querySelectorAll('.add-to-cart-btn').forEach((btn) => {
-    btn.addEventListener('click', async function () {
-      const productId = this.getAttribute('data-product-id');
-      const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-      const quantity = input ? parseInt(input.value, 10) || 1 : 1;
 
-      try {
-        const response = await fetch('/cart/items', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId, quantity }),
+        <!-- product card -->
+        <div class="products-grid">
+            <% products.forEach(product => { %>
+                <div class="product-card">
+                    <a href="/products/<%= product._id %>">
+
+                        <div class="product-image-container">
+                        <img src="<%= product.imageUrls[0] %>" alt="<%= product.name %>" class="product-image">
+                        </div>
+
+                        <span class="product-gender <%= product.gender %>">
+                            <%= product.gender %>
+                        </span>
+
+                        <h3 class="product-name"><%= product.name %></h3>
+                    </a>
+                
+                    <p class="product-price">$<%= product.price.toFixed(2) %></p>
+                    
+                    <a href="/products/<%= product._id %>" class="btn btn-primary mt-3">
+                        View Details
+                    </a>
+                    
+                    <div class="add-to-cart-controls">
+                        <button class="quantity-btn minus" data-product-id="<%= product._id %>">-</button>
+                        <input type="number" class="quantity-input" data-product-id="<%= product._id %>" value="1" min="1" max="<%= product.stock %>">
+                        <button class="quantity-btn plus" data-product-id="<%= product._id %>">+</button>
+                        <button class="add-to-cart-btn" data-product-id="<%= product._id %>">Add to Cart</button>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <button id="backToTop" style="position: fixed; bottom: 30px; right: 30px; padding: 10px 15px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; display: none;">
+            Back to Top
+        </button>
+
+        <% if (totalPages > 1) { %>
+        <div class="pagination-container" style="margin: 2rem auto; text-align: center;">
+        <nav aria-label="Page navigation">
+            <ul class="pagination" style="justify-content: center;">
+            <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="<%= generatePageUrl(currentPage - 1) %>" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+    
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                <a class="page-link" href="<%= generatePageUrl(i) %>"><%= i %></a>
+                </li>
+            <% } %>
+
+            <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="<%= generatePageUrl(currentPage + 1) %>" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            </ul>
+        </nav>
+        </div>
+        <% } %>
+
+    </main>
+
+    <!-- script -->
+    <script>
+        document.querySelectorAll('.thumbnail-image').forEach(thumb => {
+            thumb.addEventListener('click', function() {
+            const mainImage = document.querySelector('.main-image');
+            mainImage.src = this.src;
+
+            document.querySelectorAll('.thumbnail-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            this.closest('.thumbnail-item').classList.add('active');
+            });
         });
 
-        const result = await response.json();
+         // Add to Cart using RESTful API (NO confirm, NO alert)
+	 document.querySelectorAll('.add-to-cart-btn').forEach((btn) => {
+	   btn.addEventListener('click', async function () {
+	     const productId = this.getAttribute('data-product-id');
+	     const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
+	     const quantity = input ? parseInt(input.value, 10) || 1 : 1;
 
-        if (response.ok && result.success) {
-          // Update cart badge
-          const cartBadge = document.getElementById('cart-badge');
-          if (cartBadge) {
-            cartBadge.innerText = result.totalCartItems;
-            cartBadge.style.display = result.totalCartItems > 0 ? 'block' : 'none';
-          }
+	     try {
+		const response = await fetch('/cart/items', {
+		  method: 'POST',
+		  headers: { 'Content-Type': 'application/json' },
+		  body: JSON.stringify({ productId, quantity }),
+		});
 
-          // Update dropdown preview
-          updateCartPreview(result.newCart, result.newTotalPrice);
+		const result = await response.json();
+
+		if (response.ok && result.success) {
+		  // Update cart badge
+		  const cartBadge = document.getElementById('cart-badge');
+		  if (cartBadge) {
+		    cartBadge.innerText = result.totalCartItems;
+		    cartBadge.style.display = result.totalCartItems > 0 ? 'block' : 'none';
+		  }
+
+		  // Update dropdown preview
+		  updateCartPreview(result.newCart, result.newTotalPrice);
+		}
+	      } catch (err) {
+		console.error(err);
+	      }
+	    });
+	});
+	
+	  // Update cart preview dropdown
+	function updateCartPreview(newCart, newTotalPrice) {
+	    const itemsContainer = document.getElementById('cart-preview-items');
+	    const footerContainer = document.getElementById('cart-preview-footer');
+	    const totalSpan = document.getElementById('cart-preview-total');
+	    const emptyPlaceholder = document.getElementById('cart-preview-empty');
+
+	    if (!itemsContainer) return;
+
+	    itemsContainer.innerHTML = '';
+
+	    if (!Array.isArray(newCart) || newCart.length === 0) {
+	      if (emptyPlaceholder) {
+		emptyPlaceholder.innerText = 'Your cart is empty.';
+		emptyPlaceholder.style.display = 'block';
+	      }
+	      footerContainer.style.display = 'none';
+	      return;
+	    }
+
+	    newCart.forEach((item) => {
+	      const row = `
+		<div class="dropdown-item d-flex align-items-center px-3 py-2">
+		  <img src="${item.imageUrls || '/images/placeholder.png'}"
+		       style="width:50px;height:50px;object-fit:cover;margin-right:10px;border-radius:10px;">
+		  <div class="flex-grow-1">
+		    <div class="small fw-semibold text-white">${item.name}</div>
+		    <div class="small text-muted">${item.quantity} x $${Number(item.price).toFixed(2)}</div>
+		  </div>
+		</div>
+	      `;
+	      itemsContainer.insertAdjacentHTML('beforeend', row);
+	    });
+
+	    totalSpan.innerText = newTotalPrice;
+	    footerContainer.style.display = 'block';
+	    if (emptyPlaceholder) emptyPlaceholder.style.display = 'none';
+	}
+
+        const backToTopButton = document.getElementById('backToTop');
+  
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+            backToTopButton.style.display = 'block';
+            } else {
+            backToTopButton.style.display = 'none';
+            }
+        });
+        
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+            });
+        });
+
+        const quantityInput = document.querySelector('.quantity-input');
+        const minusBtn = document.querySelector('.quantity-btn.minus');
+        const plusBtn = document.querySelector('.quantity-btn.plus');
+        
+        document.querySelectorAll('.quantity-btn.plus').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
+                const max = parseInt(input.getAttribute('max'));
+                if (parseInt(input.value) < max) {
+                    input.value = parseInt(input.value) + 1;
+                }
+            });
+        });
+
+        document.querySelectorAll('.quantity-btn.minus').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
+                if (parseInt(input.value) > 1) {
+                    input.value = parseInt(input.value) - 1;
+                }
+            });
+        });
+
+        const minPriceSlider = document.getElementById('minPrice');
+        const maxPriceSlider = document.getElementById('maxPrice');
+        const minPriceValue = document.getElementById('minPriceValue');
+        const maxPriceValue = document.getElementById('maxPriceValue');
+
+        function updatePriceDisplay() {
+            let min = parseInt(minPriceSlider.value);
+            let max = parseInt(maxPriceSlider.value);
+
+            if (min > max) {
+                [min, max] = [max, min];
+                minPriceSlider.value = min;
+                maxPriceSlider.value = max;
+            }
+  
+            minPriceValue.textContent = min;
+            maxPriceValue.textContent = max;
         }
-      } catch (err) {
-        console.error(err);
-      }
-    });
-  });
-</script>
+
+        minPriceSlider.addEventListener('input', updatePriceDisplay);
+        maxPriceSlider.addEventListener('input', updatePriceDisplay);
+        </script>
+    </body>
+</html>
 
 <%- include('../partials/_bottom') %>
-

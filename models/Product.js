@@ -16,16 +16,16 @@ const productSchema = new Schema({
     required: [true, 'Product price is required'],
     min: [0, 'Price cannot be negative']
   },
-  imageUrl: {
+  imageUrls: [{
     type: String,
-    required: [true, 'Product image URL is required']
-  },
+    required: [true, 'Product image URLs are required']
+  }],
   category: {
     type: String,
     required: [true, 'Product category is required'],
     enum: ['shirt', 'pants', 'dress', 'shoes', 'accessories', 'other']
   },
-   gender: {
+  gender: {
     type: String,
     required: [true, 'Product gender classification is required'],
     enum: ['male', 'female', 'unisex'],

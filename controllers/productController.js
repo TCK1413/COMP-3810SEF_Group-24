@@ -3,10 +3,35 @@ const Product = require('../models/Product');
 // Display the product list page
 exports.getProductsPage = async (req, res) => {
   try {
-    const products = await Product.find().limit(10);
+    const page = parseInt(req.query.page) || 1;
+    const limit = 12;
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+    if (req.query.category) filter.category = req.query.category;
+    if (req.query.gender) filter.gender = req.query.gender;
+    if (req.query.minPrice || req.query.maxPrice) {
+      filter.price = {};
+      if (req.query.minPrice) filter.price.$gte = parseFloat(req.query.minPrice);
+      if (req.query.maxPrice) filter.price.$lte = parseFloat(req.query.maxPrice);
+    }
+
+    const totalProducts = await Product.countDocuments(filter);
+
+    const products = await Product.find(filter)
+      .limit(limit)
+      .skip(skip);
+      
+    const totalPages = Math.ceil(totalProducts / limit);
+
     res.render('products/index', { 
       title: 'Products', 
-      products
+      products,
+      user: req.session,
+      currentPage: page,
+      totalPages,
+      totalProducts,
+      filters: req.query
     });
   } catch (err) {
     console.error('Error fetching products:', err);
@@ -23,7 +48,8 @@ exports.getProductDetailPage = async (req, res) => {
     }
     res.render('products/detail', { 
       title: product.name, 
-      product
+      product,
+      user: req.session 
     });
   } catch (err) {
     console.error('Error fetching product details:', err);
@@ -61,11 +87,11 @@ exports.addToCart = async (req, res) => {
         productId,
         name: product.name,
         price: product.price,
-        imageUrl: product.imageUrl, // Using singular 'imageUrl' as confirmed
+        imageUrls: product.imageUrls, // Using singular 'imageUrl' as confirmed
         quantity: numQuantity
       });
     }
-    
+
     // Calculate new totals to send back to the client
     let totalCartItems = 0;
     let newTotalPrice = 0;
