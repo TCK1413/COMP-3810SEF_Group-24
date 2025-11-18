@@ -1,58 +1,80 @@
 <%- include('../partials/_top') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/product.css">
+</head>
+<body>
+    <main class="container product-detail">
+        <div class="product-detail">
+        <div class="product-images">
+            <div class="main-image-container">
+          <div class="product-gallery">
 
-<main class="container product-detail">
-    <div class="product-gallery">
-        <img src="<%= product.imageUrl %>" alt="<%= product.name %>" class="main-image">
-    </div>
-
-    <div class="product-info">
-        <h1><%= product.name %></h1>
-        <p class="price">$<%= product.price.toFixed(2) %></p>
-        <div class="description">
-            <h2>Description</h2>
-            <p><%= product.description %></p>
+            <div class="main-image-container">
+            <img src="<%= product.imageUrls[0] %>" alt="<%= product.name %>" class="main-image">
+            </div>
+            <div class="thumbnail-gallery">
+            <% product.imageUrls.forEach((url, index) => { %>
+                <div class="thumbnail-item">
+                <img src="<%= url %>" alt="Image <%= index + 1 %>" class="thumbnail-image" data-index="<%= index %>">
+                </div>
+            <% }) %>
+            </div>
         </div>
-        <div class="stock-status">
+
+        
+        <div class="product-info">
+            <span class="product-gender <%= product.gender %>"><%= product.gender %></span>
+            <h1><%= product.name %></h1>
+            <div class="price">$<%= product.price.toFixed(2) %>
+        </div>
+            
+            <div class="stock-status">
             <% if (product.stock > 0) { %>
-                <p>In Stock: <%= product.stock %> items </p>
+                In stock (<%= product.stock %> available)
             <% } else { %>
-                <p class="text-danger">Out of Stock</p>
+                <span class="out-of-stock">Out of stock</span>
             <% } %>
+        </div>
+        
+        <div class="description">
+        <h2>Description</h2>
+        <p><%= product.description %></p>
+        </div>
+        
+        <div class="category">
+        Category: <%= product.category %>
         </div>
 
         <div class="add-to-cart-controls">
-            <button class="quantity-btn minus">-</button>
-            <input type="number" class="quantity-input" value="1" min="1" max="<%= product.stock %>">
-            <button class="quantity-btn plus">+</button>
-            <button class="add-to-cart-btn" data-product-id="<%= product._id %>">Add to Cart</button>
+                <button class="quantity-btn minus">-</button>
+                <input type="number" class="quantity-input" value="1" min="1" max="<%= product.stock %>">
+                <button class="quantity-btn plus">+</button>
+                <button class="add-to-cart-btn" data-product-id="<%= product._id %>">Add to Cart</button>
         </div>
-    </div>
-</main>
+    </main>
 
 <script>
-  // Quantity control
   const qtyInput = document.querySelector('.quantity-input');
-  const plusBtn = document.querySelector('.quantity-btn.plus');
-  const minusBtn = document.querySelector('.quantity-btn.minus');
 
-  if (plusBtn && qtyInput) {
-    plusBtn.addEventListener('click', function () {
-      const max = parseInt(qtyInput.getAttribute('max'), 10);
-      const current = parseInt(qtyInput.value, 10) || 1;
-      if (current < max) {
-        qtyInput.value = current + 1;
+  document.querySelector('.quantity-btn.plus').addEventListener('click', function() {
+      const input = document.querySelector('.quantity-input');
+      const max = parseInt(input.getAttribute('max'));
+      if (parseInt(input.value) < max) {
+          input.value = parseInt(input.value) + 1;
       }
-    });
-  }
+  });
 
-  if (minusBtn && qtyInput) {
-    minusBtn.addEventListener('click', function () {
-      const current = parseInt(qtyInput.value, 10) || 1;
-      if (current > 1) {
-        qtyInput.value = current - 1;
+  document.querySelector('.quantity-btn.minus').addEventListener('click', function() {
+      const input = document.querySelector('.quantity-input');
+      if (parseInt(input.value) > 1) {
+          input.value = parseInt(input.value) - 1;
       }
-    });
-  }
+  });
 
   // Helper: update cart preview dropdown in _top.ejs
   function updateCartPreview(newCart, newTotalPrice) {
@@ -147,7 +169,34 @@
       }
     });
   }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const thumbnails = document.querySelectorAll('.thumbnail-item img');
+    const mainImage = document.querySelector('.main-image');
+
+    thumbnails.forEach(thumbnail => {
+      thumbnail.addEventListener('click', function() {
+        mainImage.src = this.src;
+        thumbnails.forEach(img => img.parentElement.classList.remove('active'));
+        this.parentElement.classList.add('active');
+      });
+    });
+  });
+
+  document.querySelectorAll('.thumbnail-item img').forEach((thumbnail, index) => {
+    thumbnail.addEventListener('click', () => {
+
+      document.getElementById('mainProductImage').src = thumbnail.src;
+
+      document.querySelectorAll('.thumbnail-item img').forEach(img => {
+        img.style.borderColor = 'transparent';
+      });
+      thumbnail.style.borderColor = '#4caf50';
+    });
+  });
 </script>
 
-<%- include('../partials/_bottom') %>
+</body>
+</html>
 
+<%- include('../partials/_bottom') %>

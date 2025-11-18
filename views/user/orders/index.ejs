@@ -33,7 +33,7 @@
                 <% thumbs.forEach(function(it){ 
                      const img = it.imageUrl || (it.images && it.images[0]) || it.image || '/images/placeholder.png';
                 %>
-                  <img src="<%= img %>" alt="" class="rounded border" style="width:32px;height:32px;object-fit:cover;">
+                  <img src="<%= img %>" alt="" class="rounded border" style="width: 50px; height: 50px; object-fit: contain; object-position: center; background:#fff; border-radius:10px; margin-right:10px;">
                 <% }) %>
                 <% if (extra > 0) { %>
                   <span class="badge text-bg-secondary align-self-center">+<%= extra %></span>

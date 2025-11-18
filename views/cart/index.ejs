@@ -40,7 +40,7 @@
           <% cart.forEach(item => { %>
             <div class="list-group-item d-flex align-items-center">
               
-              <img src="<%= item.imageUrl ? item.imageUrl : '/images/placeholder.png' %>" alt="<%= item.name %>" class="cart-item-img">
+              <img src="<%= item.imageUrls ? item.imageUrls : '/images/placeholder.png' %>" alt="<%= item.name %>" class="cart-item-img" style="width: 50px; height: 50px; object-fit: contain; object-position: center; background:#fff; border-radius:10px; margin-right:10px;">
               
               <div class="flex-grow-1">
                 <strong><%= item.name %></strong>

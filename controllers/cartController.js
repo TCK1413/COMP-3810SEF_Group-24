@@ -135,7 +135,7 @@ exports.apiAddCartItem = async (req, res, next) => {
         productId: productId,
         name: product.name,
         price: product.price,
-        imageUrl: product.imageUrl,
+        imageUrls: product.imageUrls[0],
         quantity: numQuantity,
       });
     }
