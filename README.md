@@ -3,7 +3,7 @@
 ## **1. Project Information**
 
   **Project Name:** Fashion Shop Platform
-  **Group No.:** 24
+  **Group No:** 24
   
   **Group Members:**
   
