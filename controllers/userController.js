@@ -1,4 +1,4 @@
-const User = require('../models/User'); // Ensure models/User.js exists
+const User = require('../models/User');
 
 // === Controller function to GET (display) the profile page ===
 // This handles GET /user/profile
@@ -11,7 +11,7 @@ exports.getProfile = async (req, res, next) => {
     // .lean() is used for faster read-only operations when we just need to render.
     const user = await User.findById(userId).lean();
 
-    // If no user is found (e.g., bad session), clear session and redirect to login.
+    // If no user is found, clear session and redirect to login.
     if (!user) {
       req.session = null; // Clear the invalid session
       return res.redirect('/auth/login');
