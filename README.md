@@ -7,9 +7,9 @@
   
   **Group Members:**
   
-  * Student Name (SID: XXXXXXXX)
-  * Student Name (SID: XXXXXXXX)
-  * Student Name (SID: XXXXXXXX)
+  * Tang Chi Kit (SID: 14139924)
+  * CUI Tianlang (SID: 13509340)
+  * Chen Weihua  (SID: 14143648)
 
 --------------------------------------------------------------------------------------
 
